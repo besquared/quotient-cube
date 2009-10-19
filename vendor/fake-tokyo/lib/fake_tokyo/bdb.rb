@@ -14,11 +14,16 @@ module FakeTokyo
     end
     
     def put(key, value)
-      if value.is_a?(Array)
-        @data[key] = value
+      if value.is_a?(String) or value.is_a?(Numeric)
+        @data[key] = value.to_s
       else
-        @data[key] = [value]
+        raise "Cannot convert #{value.class} into String"
       end
+    end
+    
+    def putlist(key, values)
+      @data[key] ||= []
+      @data[key] += [values]
     end
     
     def putdup(key, value)
@@ -27,16 +32,11 @@ module FakeTokyo
     end
     
     def get(key)
-      data = @data[key]
-      if data.nil?
-        return data
-      elsif data.is_a?(Array) and data.length == 1
-        return data.first
-      else
-        return data
-      end
+      @data[key]
     end
     
+    alias :getlist :get
+
     def incr(key)
       if @data[key].nil?
         return @data[key] = 1

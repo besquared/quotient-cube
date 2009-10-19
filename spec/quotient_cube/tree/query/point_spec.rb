@@ -62,6 +62,34 @@ describe QuotientCube::Tree::Query::Point do
     end
   end
   
+  describe "With the location, product, time data set" do
+    before(:each) do
+      @table = Table.new(
+        :column_names => [
+          'location', 'product', 'time', 'sales'
+        ], :data => [
+          ['Van', 'b', 'd1', 9],
+          ['Van', 'f', 'd2', 3],
+          ['Tor', 'b', 'd2', 6]
+        ]
+      )
+  
+      @dimensions = ['location', 'product', 'time']
+      @measures = ['sales[sum]', 'sales[average]']
+      
+      @cube = QuotientCube::Base.build(
+        @table, @dimensions, @measures
+      ) do |table, pointers|
+        sum = 0
+        pointers.each do |pointer|
+          sum += table[pointer]['sales']
+        end
+        
+        [sum, (sum / pointers.length)]
+      end
+    end
+  end
+  
   describe "With a made up dataset" do
     before(:each) do
       @table = Table.new(

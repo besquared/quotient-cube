@@ -1,5 +1,7 @@
 require File.join(File.dirname(__FILE__), '..', '..', 'spec_helper')
 
+include TokyoCabinet
+
 describe QuotientCube::Tree::Builder do
   describe "With the store, product, season data set" do
     before(:each) do
@@ -114,6 +116,19 @@ describe QuotientCube::Tree::Builder do
       @database.get("prefix:10:[season]").should == "11:f"
 
       @database.get("prefix:11:measures").should == "sales:9.0"  
+    end
+    
+    it "should work with a real tokyo cabinet bdb object" do      
+      @database = BDB.new
+      @database.open('cabinet.tcb', BDB::OWRITER | BDB::OCREAT)      
+      @tree = QuotientCube::Tree::Builder.new(
+                  @database, @cube, :prefix => 'prefix').build
+      
+      @database.close
+      
+      puts @database.rnum
+      
+      FileUtils.rm('cabinet.tcb')      
     end
   end
 end
