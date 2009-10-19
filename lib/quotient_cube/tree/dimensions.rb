@@ -10,7 +10,7 @@ module QuotientCube
     
       def dimensions
         unless @dimensions.is_a?(Array)
-          names = database.get(key)
+          names = database.getlist(key)
           if names.nil?
             @dimensions = []
           else

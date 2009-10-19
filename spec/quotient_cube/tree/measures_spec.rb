@@ -55,15 +55,15 @@ describe QuotientCube::Tree::Measures do
     measure.name.should == 'sales[avg]'
     measure.value.should == 3
     @measures.length.should == 1
-    @database.get('prefix:1:measures').should == 'sales[avg]:3'
+    @database.getlist('prefix:1:measures').should == ['sales[avg]:3']
   end
   
   it "should only create a measure if one doesn't exist" do
     measure = @measures.create('sales[avg]', 3)
-    @database.get('prefix:1:measures').should == 'sales[avg]:3'
+    @database.getlist('prefix:1:measures').should == ['sales[avg]:3']
     
     measure = @measures.create('sales[avg]', 3)
     measure.name.should == 'sales[avg]'
-    @database.get('prefix:1:measures').should == 'sales[avg]:3'
+    @database.getlist('prefix:1:measures').should == ['sales[avg]:3']
   end
 end

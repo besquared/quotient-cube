@@ -59,7 +59,7 @@ module QuotientCube
       end
       
       def meta_query(property)
-        meta_node = database.get(meta_key(property))
+        meta_node = database.getlist(meta_key(property))
       end
     
       def dimensions

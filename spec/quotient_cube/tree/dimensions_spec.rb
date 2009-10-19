@@ -21,23 +21,15 @@ describe QuotientCube::Tree::Dimensions do
   end
   
   it "should lazily instantiate no dimensions" do
-    @database.should_receive(:get).with("prefix:1:dimensions").and_return([])
     @dimensions.dimensions.should == []
   end
   
-  it "should lazily instantiate one dimension" do
-    @database.should_receive(:get).with("prefix:1:dimensions").and_return('season')
-    dimensions = @dimensions.dimensions
-    dimensions.length.should == 1
-    dimensions.first.name.should == 'season'
-  end
-  
-  it "should lazily instantiate two dimensions" do
-    @database.should_receive(:get).with("prefix:1:dimensions").and_return(['season', 'store'])
+  it "should lazily instantiate some dimensions" do
+    @database.putlist('prefix:1:dimensions', ['store', 'season'])
     dimensions = @dimensions.dimensions
     dimensions.length.should == 2
-    dimensions.first.name.should == 'season'
-    dimensions.second.name.should == 'store'
+    dimensions.first.name.should == 'store'
+    dimensions.second.name.should == 'season'
   end
   
   it "should return nil if no dimension is found" do
@@ -49,15 +41,15 @@ describe QuotientCube::Tree::Dimensions do
     dimension.node.should == @node
     dimension.name.should == 'season'
     @dimensions.length.should == 1
-    @database.get('prefix:1:dimensions').should == 'season'
+    @database.getlist('prefix:1:dimensions').should == ['season']
   end
   
   it "should only create a dimension if one doesn't exist" do
     dimension = @dimensions.create('season')
-    @database.get('prefix:1:dimensions').should == 'season'
+    @database.getlist('prefix:1:dimensions').should == ['season']
     
     dimension = @dimensions.create('season')
     dimension.name.should == 'season'
-    @database.get('prefix:1:dimensions').should == 'season'
+    @database.getlist('prefix:1:dimensions').should == ['season']
   end
 end

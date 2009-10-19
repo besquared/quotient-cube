@@ -82,10 +82,10 @@ module QuotientCube
       end
       
       def build_meta
-        database.put(meta_key('dimensions'), cube.dimensions)
-        database.put(meta_key('measures'), cube.measures)
+        database.putlist(meta_key('dimensions'), cube.dimensions)
+        database.putlist(meta_key('measures'), cube.measures)
         cube.values.each do |dimension, values|
-          database.put(meta_key("[#{dimension}]"), values)
+          database.putlist(meta_key("[#{dimension}]"), values)
         end
       end
       

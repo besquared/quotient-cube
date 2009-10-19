@@ -36,7 +36,7 @@ describe QuotientCube::Tree::Base do
     end
     
     it "should get a list of measures" do
-      @tree.measures.should == 'sales'
+      @tree.measures.should == ['sales']
     end
     
     it "should get a list of values" do

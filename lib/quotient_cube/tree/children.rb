@@ -10,7 +10,7 @@ module QuotientCube
     
       def children
         unless @children.is_a?(Array)
-          names = database.get(dimension.key)
+          names = database.getlist(dimension.key)
           if names.nil?
             @children = []
           else

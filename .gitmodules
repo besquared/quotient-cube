@@ -1,0 +1,3 @@
+[submodule "vendor/autobots-transform"]
+	path = vendor/autobots-transform
+	url = git@github.com:besquared/autobots-transform.git

@@ -22,14 +22,14 @@ describe QuotientCube::Tree::Children do
   end
   
   it "should lazily instantiate one child" do
-    @database.put("prefix:1:[store]", '2:S1')
+    @database.putdup("prefix:1:[store]", '2:S1')
     @children.children.length.should == 1
     @children.children.first.id.should == '2'
     @children.children.first.name.should == 'S1'
   end
   
   it "should lazily instantiate two children" do
-    @database.put("prefix:1:[store]", ["2:S1", "3:S2"])
+    @database.putlist("prefix:1:[store]", ["2:S1", "3:S2"])
     @children.children.length.should == 2
     @children.children.first.id.should == '2'
     @children.children.first.name.should == 'S1'
@@ -46,21 +46,21 @@ describe QuotientCube::Tree::Children do
     child.tree.should == @tree
     child.name.should == 'S1'
     @children.length.should == 1
-    @database.get('prefix:1:[store]').should == '2:S1'
+    @database.getlist('prefix:1:[store]').should == ['2:S1']
   end
   
   it "should only create a child if one doesn't exist" do
     s1 = @children.create('S1')
-    @database.get('prefix:1:[store]').should == '2:S1'
+    @database.getlist('prefix:1:[store]').should == ['2:S1']
     
     child = @children.create('S1')
     child.name.should == 'S1'
-    @database.get('prefix:1:[store]').should == '2:S1'
+    @database.getlist('prefix:1:[store]').should == ['2:S1']
   end
   
   it "should add node without creating it" do
     node = QuotientCube::Tree::Node.create(@tree, 'S2')
     @children.add(node)
-    @database.get('prefix:1:[store]').should == '2:S2'
+    @database.getlist('prefix:1:[store]').should == ['2:S2']
   end
 end

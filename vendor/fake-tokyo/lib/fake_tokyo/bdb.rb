@@ -23,7 +23,7 @@ module FakeTokyo
     
     def putlist(key, values)
       @data[key] ||= []
-      @data[key] += [values]
+      @data[key] += values
     end
     
     def putdup(key, value)
@@ -37,19 +37,11 @@ module FakeTokyo
     
     alias :getlist :get
 
-    def incr(key)
+    def addint(key, value)
       if @data[key].nil?
-        return @data[key] = 1
+        return @data[key] = value
       else
-        return @data[key] += 1
-      end
-    end
-    
-    def decr(key)
-      if @data[key].nil?
-        return @data[key] = -1
-      else
-        return @data[key] -= 1
+        return @data[key] += value
       end
     end
     

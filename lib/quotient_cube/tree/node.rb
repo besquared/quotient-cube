@@ -45,7 +45,7 @@ module QuotientCube
         end
       
         def generate_id(tree)
-          tree.database.incr("#{tree.prefix}last_id")
+          tree.database.addint("#{tree.prefix}last_id", 1)
         end
         
         def root(tree)
