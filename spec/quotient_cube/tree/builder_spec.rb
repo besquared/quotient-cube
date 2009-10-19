@@ -27,9 +27,16 @@ describe QuotientCube::Tree::Builder do
         sum / pointers.length.to_f
       end
       
-      @database = FakeTokyo::BDB.new
+      @tempfile = Tempfile.new('database')
+      @database = TokyoCabinet::BDB.new
+      @database.open(@tempfile.path, BDB::OWRITER | BDB::OCREAT)
+
       @builder = QuotientCube::Tree::Builder.new(
                   @database, @cube, :prefix => 'prefix')
+    end
+    
+    after(:each) do
+      @database.close
     end
     
     it "should build meta" do
@@ -75,7 +82,7 @@ describe QuotientCube::Tree::Builder do
     it "should build quotient cube tree" do
       @builder.build
       
-      @database.get("prefix:last_id").should == 11
+      @database.get("prefix:last_id").unpack("i").first.should == 11
       @database.getlist("prefix:dimensions").should == ["store", "product", "season"]
       @database.getlist("prefix:measures").should == ["sales"]
       @database.get("prefix:root").should == "1"
@@ -116,19 +123,6 @@ describe QuotientCube::Tree::Builder do
       @database.getlist("prefix:10:[season]").should == ["11:f"]
 
       @database.getlist("prefix:11:measures").should == ["sales:9.0"]
-    end
-    
-    it "should work with a real tokyo cabinet bdb object" do      
-      # @database = BDB.new
-      # @database.open('cabinet.tcb', BDB::OWRITER | BDB::OCREAT)      
-      # @tree = QuotientCube::Tree::Builder.new(
-      #             @database, @cube, :prefix => 'prefix').build
-      # 
-      # @database.close
-      # 
-      # puts @database.rnum
-      # 
-      # FileUtils.rm('cabinet.tcb')      
     end
   end
 end

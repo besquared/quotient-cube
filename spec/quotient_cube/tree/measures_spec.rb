@@ -2,10 +2,17 @@ require File.join(File.dirname(__FILE__), '..', '..', 'spec_helper')
 
 describe QuotientCube::Tree::Measures do
   before(:each) do
-    @database = FakeTokyo::BDB.new 
+    @tempfile = Tempfile.new('database')
+    @database = TokyoCabinet::BDB.new
+    @database.open(@tempfile.path, BDB::OWRITER | BDB::OCREAT)
+
     @tree = QuotientCube::Tree::Base.new(@database, :prefix => 'prefix')
     @node = QuotientCube::Tree::Node.create(@tree, 'root')
     @measures = QuotientCube::Tree::Measures.new(@node)
+  end
+  
+  after(:each) do
+    @database.close
   end
   
   it "should have key" do

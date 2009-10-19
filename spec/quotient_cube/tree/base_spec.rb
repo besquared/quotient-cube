@@ -26,9 +26,16 @@ describe QuotientCube::Tree::Base do
         sum / pointers.length.to_f
       end
       
-      @database = FakeTokyo::BDB.new
+      @tempfile = Tempfile.new('database')
+      @database = TokyoCabinet::BDB.new
+      @database.open(@tempfile.path, BDB::OWRITER | BDB::OCREAT)
+
       @tree = QuotientCube::Tree::Builder.new(
                   @database, @cube, :prefix => 'prefix').build
+    end
+    
+    after(:each) do
+      @database.close
     end
     
     it "should get a list of dimensions" do

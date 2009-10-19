@@ -25,11 +25,18 @@ describe QuotientCube::Tree::Query::Base do
         sum / pointers.length.to_f
       end
     
-      @database = FakeTokyo::BDB.new
+      @tempfile = Tempfile.new('database')
+      @database = TokyoCabinet::BDB.new
+      @database.open(@tempfile.path, BDB::OWRITER | BDB::OCREAT)
+
       @tree = QuotientCube::Tree::Builder.new(
                   @database, @cube, :prefix => 'prefix').build
       @query = QuotientCube::Tree::Query::Base.new(@tree, 
                   {'store' => 'S1', 'product' => 'P1', 'season' => 's'}, ['sales'])
+    end
+    
+    after(:each) do
+      @database.close
     end
   
     it "should get the last specified position" do

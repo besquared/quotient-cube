@@ -25,9 +25,16 @@ describe QuotientCube::Tree::Query::Point do
         sum / pointers.length.to_f
       end
     
-      @database = FakeTokyo::BDB.new
+      @tempfile = Tempfile.new('database')
+      @database = TokyoCabinet::BDB.new
+      @database.open(@tempfile.path, BDB::OWRITER | BDB::OCREAT)
+
       @tree = QuotientCube::Tree::Builder.new(
                   @database, @cube, :prefix => 'prefix').build
+    end
+    
+    after(:each) do
+      @database.close
     end
   
     it "should answer with empty conditions" do
@@ -117,9 +124,16 @@ describe QuotientCube::Tree::Query::Point do
         [sum, (sum / pointers.length.to_f)]
       end
       
-      @database = FakeTokyo::BDB.new
+      @tempfile = Tempfile.new('database')
+      @database = TokyoCabinet::BDB.new
+      @database.open(@tempfile.path, BDB::OWRITER | BDB::OCREAT)
+
       @tree = QuotientCube::Tree::Builder.new(
                   @database, @cube, :prefix => 'prefix').build      
+    end
+    
+    after(:each) do
+      @database.close
     end
     
     it "should answer with empty conditions" do

@@ -25,11 +25,18 @@ describe QuotientCube::Tree::Query::Range do
         sum / pointers.length.to_f
       end
     
-      @database = FakeTokyo::BDB.new
+      @tempfile = Tempfile.new('database')
+      @database = TokyoCabinet::BDB.new
+      @database.open(@tempfile.path, BDB::OWRITER | BDB::OCREAT)
+
       @tree = QuotientCube::Tree::Builder.new(
                   @database, @cube, :prefix => 'prefix').build
     end
-  
+    
+    after(:each) do
+      @database.close
+    end
+    
     it "should answer with empty conditions" do
       QuotientCube::Tree::Query::Range.new(
         @tree, {'store' => '*', 'product' => '*', 'season' => '*'}, ['sales']
