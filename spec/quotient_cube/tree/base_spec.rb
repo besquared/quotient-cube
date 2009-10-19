@@ -14,7 +14,7 @@ describe QuotientCube::Tree::Base do
       )
     
       @dimensions = ['store', 'product', 'season']
-      @measures = ['sales']
+      @measures = ['sales[sum]', 'sales[avg]']
     
       @cube = QuotientCube::Base.build(
         @table, @dimensions, @measures
@@ -23,7 +23,8 @@ describe QuotientCube::Tree::Base do
         pointers.each do |pointer|
           sum += table[pointer]['sales']
         end
-        sum / pointers.length.to_f
+        
+        [sum, sum / pointers.length.to_f]
       end
       
       @tempfile = Tempfile.new('database')
@@ -43,7 +44,7 @@ describe QuotientCube::Tree::Base do
     end
     
     it "should get a list of measures" do
-      @tree.measures.should == ['sales']
+      @tree.measures.should == ['sales[sum]', 'sales[avg]']
     end
     
     it "should get a list of values" do
@@ -52,13 +53,25 @@ describe QuotientCube::Tree::Base do
       @tree.values('season').should == ['f', 's']
     end
     
-    it "should answer point and range queries" do
-      @tree.query.should == {'sales' => 9.0}
-      @tree.query('product' => 'P1').should == {'sales' => 7.5}
-      @tree.query('product' => 'P1', 'season' => 'f').should == {'sales' => 9.0}
-      @tree.query('product' => ['P1', 'P2', 'P3']).should == [
-        {'product' => 'P1', 'sales' => 7.5}, {'product' => 'P2', 'sales' => 12.0}
-      ]
+    it "should answer point and range queries" do      
+      @tree.find(:all).should == {'sales[sum]' => 27.0, 'sales[avg]' => 9.0}
+      
+      @tree.find('sales[avg]', 
+        :conditions => {'product' => 'P1'}).should == {'sales[avg]' => 7.5}
+      
+      @tree.find('sales[avg]', 'sales[sum]').should == \
+        {'sales[sum]' => 27.0, 'sales[avg]' => 9.0}
+      
+      @tree.find('sales[avg]', 
+        :conditions => {'product' => 'P1', 'season' => 'f'}).should == {'sales[avg]' => 9.0}
+      
+      @tree.find('sales[avg]',
+        :conditions => {'product' => ['P1', 'P2', 'P3']}).should == [
+          {'product' => 'P1', 'sales[avg]' => 7.5}, 
+          {'product' => 'P2', 'sales[avg]' => 12.0}
+        ]
+      
+      
     end
   end
 end

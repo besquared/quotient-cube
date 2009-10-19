@@ -27,7 +27,12 @@ module QuotientCube
       #  the list of measures you want returned
       #  ex: :all, ['avg(sales)', 'sum(seconds)', 'avg(value)']
       #
-      def query(conditions = {}, measures = :all)
+      def find(*args)
+        options = args.pop if args.last.is_a?(Hash)
+        
+        measures = args.first == :all ? args.first : args
+        conditions = (options and options[:conditions]) || {}
+        
         query_type = :point
         conditions.each do |dimension, value|
           if value.is_a?(Array)
