@@ -71,7 +71,10 @@ describe QuotientCube::Tree::Base do
           {'product' => 'P2', 'sales[avg]' => 12.0}
         ]
       
-      
+      @tree.find(:all, :conditions => {'product' => :all}).should ==   [
+        {'product' => 'P1', 'sales[avg]' => 7.5, 'sales[sum]' => 15.0}, 
+        {'product' => 'P2', 'sales[avg]' => 12.0, 'sales[sum]' => 12.0}
+      ]
     end
   end
 end
