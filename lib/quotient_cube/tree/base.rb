@@ -40,19 +40,19 @@ module QuotientCube
           end
         end
       
-        # Fill in conditions
-        dimensions.each do |dimension|
-          conditions[dimension] = '*' if conditions[dimension].nil?
-        end
-      
         # Expand measures
         measures = meta_query('measures') if measures == :all
-      
+        
         case query_type
         when :point
-          return Query::Point.new(nodes.root, conditions, measures).process
+          return Query::Point.new(self, conditions, measures).process
         when :range
-          return Query::Range.new(nodes.root, conditions, measures).process
+          # Fill in conditions
+          dimensions.each do |dimension|
+            conditions[dimension] = '*' if conditions[dimension].nil?
+          end
+          
+          return Query::Range.new(self, conditions, measures).process
         else
           raise "Unknown query type or bad conditions"
         end

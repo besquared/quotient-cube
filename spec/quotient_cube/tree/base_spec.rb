@@ -51,5 +51,14 @@ describe QuotientCube::Tree::Base do
       @tree.values('product').should == ['P1', 'P2']
       @tree.values('season').should == ['f', 's']
     end
+    
+    it "should answer point and range queries" do
+      @tree.query.should == {'sales' => 9.0}
+      @tree.query('product' => 'P1').should == {'sales' => 7.5}
+      @tree.query('product' => 'P1', 'season' => 'f').should == {'sales' => 9.0}
+      @tree.query('product' => ['P1', 'P2', 'P3']).should == [
+        {'product' => 'P1', 'sales' => 7.5}, {'product' => 'P2', 'sales' => 12.0}
+      ]
+    end
   end
 end
