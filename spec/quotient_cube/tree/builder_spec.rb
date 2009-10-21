@@ -124,5 +124,21 @@ describe QuotientCube::Tree::Builder do
 
       @database.getlist("prefix:11:measures").should == ["sales:9.0"]
     end
+    
+    it "should be able to put more than one tree into a single database" do
+      @builder.build
+      
+      @database.close
+      @database = TokyoCabinet::BDB.new
+      @database.open(@tempfile.path, BDB::OWRITER | BDB::OCREAT)
+      
+      @builder = QuotientCube::Tree::Builder.new(
+                  @database, @cube, :prefix => 'prefix2')
+      
+      @builder.build
+      
+      @database.fwmkeys('prefix:').length.should == 30
+      @database.fwmkeys('prefix2:').length.should == 30
+    end
   end
 end
