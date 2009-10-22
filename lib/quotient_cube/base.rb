@@ -9,6 +9,11 @@ include AutobotsTransform
 #  unless you use an ordered hash to store the
 #  inverted indexes in.
 #
+# It's important to note that we're using dimension
+#  names in indexes everywhere to make sure that we
+#  can do cubes only for the dimensions we're interested
+#  in and not every dimension in the table
+#
 module QuotientCube
   class Base < AutobotsTransform::Table
     attr_accessor :table
@@ -68,17 +73,30 @@ module QuotientCube
     # ]
     #
     def indexes(pointers)
-      indexes = []
-      0.upto(dimensions.length - 1) do |dimension|
+      indexes = {}
+      dimensions.each do |dimension|
         index = {}
-        pointers.each do |pointer|
-          value = table.data[pointer][dimension]
+        columni = table.column_names.index(dimension)
+        pointers.each do |rowi|
+          value = table.data[rowi][columni]
           index[value] ||= []
-          index[value] << pointer
+          index[value] << rowi
         end
-        indexes << index
+        # puts "Setting indexes[#{dimension}] to #{index.inspect}"
+        indexes[dimension] = index
       end
       indexes
+      
+      # 0.upto(dimensions.length - 1) do |dimension|
+      #   index = {}
+      #   pointers.each do |pointer|
+      #     value = table.data[pointer][dimension]
+      #     index[value] ||= []
+      #     index[value] << pointer
+      #   end
+      #   indexes << index
+      # end
+      # indexes
     end
 
     #
@@ -105,9 +123,11 @@ module QuotientCube
     def upper_bound(indexed, lower)
       upper = lower.dup
       lower.each_with_index do |value, index|
+        dimension = dimensions[index]
+        
         if value == '*'
-          if indexed[index].keys.length == 1
-            upper[index] = indexed[index].keys.first
+          if indexed[dimension].keys.length == 1
+            upper[index] = indexed[dimension].keys.first
           end
         else
           upper[index] = value
@@ -164,7 +184,9 @@ module QuotientCube
       n = dimensions.length - 1
       for j in (position..n) do
         next unless d[j] == '*'
-        indexed[j].each do |x, pointers|
+        
+        dimension = dimensions[j]
+        indexed[dimension].each do |x, pointers|
         if(pointers.length > 0)
             d[j] = x
             dfs(d, pointers, j, class_id, &block)

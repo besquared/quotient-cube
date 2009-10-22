@@ -25,7 +25,10 @@ describe QuotientCube::Base do
         ), ['store', 'product'], []
       )
     
-      cube.indexes([0,1]).should == [{'S1' => [0, 1]}, {'P1' => [0], 'P2' => [1]}]
+      cube.indexes([0,1]).should == {
+        'store' => {'S1' => [0, 1]}, 
+        'product' => {'P1' => [0], 'P2' => [1]}
+      }
     end
   
     it "should find upper bounds correctly" do
@@ -125,7 +128,7 @@ describe QuotientCube::Base do
       values['product'].should == ['P1', 'P2']
       values['season'].should == ['f', 's']
     end
-  
+    
     it "should benchmark" do
       # data = []
       # 0.upto(45000) do |index|
@@ -162,7 +165,7 @@ describe QuotientCube::Base do
           ['Tor', 'b', 'd2', 6]
         ]
       )
-
+  
       @dimensions = ['location', 'product', 'time']
       @measures = ['sales[sum]', 'sales[average]']
     end
@@ -233,7 +236,7 @@ describe QuotientCube::Base do
           [6, 3, 6, 9, 4]
         ]
       ).sort(['x1', 'x2', 'x3', 'x4'])
-
+  
       @dimensions, @measures = [
         'x1', 'x2', 'x3', 'x4',
       ], ['sales[sum]', 'sales[average]']
@@ -247,7 +250,7 @@ describe QuotientCube::Base do
         pointers.each do |pointer|
           sum += table[pointer]['sales']
         end
-
+  
         [sum, (sum / pointers.length)]
       end
       
@@ -270,6 +273,51 @@ describe QuotientCube::Base do
         
         rows.first['sales[sum]'].should == sales_sums[index]
       end
+    end
+  end
+  
+  describe "With a table that has extra dimensions" do
+    before(:each) do
+      @table = Table.new(
+        :column_names => [
+          'store', 'product', 'season', 'sales'
+        ], :data => [
+          ['S1', 'P1', 's', 6],
+          ['S1', 'P2', 's', 12],
+          ['S2', 'P1', 'f', 9]
+        ]
+      )
+      
+      @dimensions = ['store', 'season']
+      @measures = ['sales']
+    end
+    
+    it "should index correctly" do
+      cube = QuotientCube::Base.new(@table, @dimensions, [])
+      cube.indexes([0, 1, 2]).should == {
+        'store' => {'S1' => [0, 1], 'S2' => [2]}, 
+        'season' => {'f' => [2], 's' => [0, 1]}
+      }
+    end
+    
+    it "should generate the correct cube" do
+      cube = QuotientCube::Base.build(
+        @table, @dimensions, @measures
+      ) do |table, pointers|
+        sum = 0
+        pointers.each do |pointer|
+          sum += table[pointer]['sales']
+        end
+        sum / pointers.length.to_f      
+      end
+      
+      cube.data.should == [
+        [0, ['*', '*'], ['*', '*'], -1, 9.0],
+        [1, ['S1', 's'], ['S1', '*'], 0, 9.0],
+        [3, ['S1', 's'], ['*', 's'], 0, 9.0],
+        [2, ['S2', 'f'], ['S2', '*'], 0, 9.0],
+        [4, ['S2', 'f'], ['*', 'f'], 0, 9.0]
+      ]
     end
   end
 end
