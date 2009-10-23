@@ -28,22 +28,17 @@ module QuotientCube
         #  never did, we need to do that
       
         last = cube.first
-        last_built = build_nodes(cube[0]['upper'], cube[0])
-        last_built = [tree.nodes.root] if last_built.compact.empty?
+        last_built = [tree.nodes.root]
         cube.each_with_index do |row, index|
           next if index == cube.length - 1
       
           current = cube[index + 1]
       
           if current['upper'] != last['upper']
-            # puts %{
-            #   Found new upper bound, writing 
-            #   nodes for #{current['upper'].inspect}
-            # }.squish
-            
-            #
-            # It's not always last, f'ing a
-            #
+            puts %{
+              Found new upper bound, writing 
+              nodes for #{current['upper'].inspect}
+            }.squish
             
             node_index[row['id']] = {
               :nodes => last_built, :upper => last['upper']
@@ -53,7 +48,7 @@ module QuotientCube
             last = current.dup
           else
             #
-            # What does this section even do? If we've found a new
+            # If we've found a new
             #  upper bound we need to compare the current lower bound
             #  to the child upper bound, and find out which dimension
             #  we need to create a link on, once we've done that
@@ -73,10 +68,10 @@ module QuotientCube
             cube.dimensions.each_with_index do |dimension, position|
               if child[:upper][position] == '*' and lower[position] != '*'
                 
-                # puts %{
-                #   Building link from #{child[:nodes].compact.last} to 
-                #   #{last_built[position]} on dimension #{dimension}
-                # }.squish
+                puts %{
+                  Building link from #{child[:nodes].compact.last} to 
+                  #{last_built[position]} on dimension #{dimension}
+                }.squish
                 
                 build_link(child[:nodes].compact.last, last_built[position], dimension)
                 break
@@ -91,6 +86,11 @@ module QuotientCube
       def build_meta
         database.putlist(meta_key('dimensions'), cube.dimensions)
         database.putlist(meta_key('measures'), cube.measures)
+        
+        cube.fixed.each do |dimension, value|
+          database.putdup(meta_key('fixed'), "#{dimension}:#{value}")
+        end
+        
         cube.values.each do |dimension, values|
           database.putlist(meta_key("[#{dimension}]"), values)
         end
@@ -118,7 +118,7 @@ module QuotientCube
           if bound[index] != '*'
             dimension = last_node.dimensions.create(dimension)
             last_node = dimension.children.create(bound[index])
-            # puts "Created node #{last_node}"
+            puts "Created node #{last_node}"
             nodes << last_node
           else
             nodes << nil

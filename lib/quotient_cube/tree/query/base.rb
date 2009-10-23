@@ -26,10 +26,10 @@ module QuotientCube
           dimension = node.dimensions.find(dim)
           
           if dimension
-            # puts "Found an edge labeled #{dimension.name} from #{node.name}"
+            puts "Found an edge labeled #{dimension.name} from #{node.name}"
             return dimension.children.find(value)
           else
-            # puts "Didn't find an edge labeled #{dim} from #{node.name}"
+            puts "Didn't find an edge labeled #{dim} from #{node.name}"
             
             last_dimension = last_node_dimension(node)
             
@@ -39,22 +39,22 @@ module QuotientCube
               last_index = tree.dimensions.index(last_dimension.name)
             end
             
-            # puts "Looking at the last child of the last dimension #{last_dimension} of #{node.name}"
+            puts "Looking at the last child of the last dimension #{last_dimension} of #{node.name}"
 
             if last_index < position
               last_node = last_dimension.children.last
               
-              # puts "last child was #{last_node}"
+              puts "last child was #{last_node}"
               
               if last_node.nil?
-                # puts "Didn't find any child nodes of the last dimension #{last_dimension} of #{node.name}"
+                puts "Didn't find any child nodes of the last dimension #{last_dimension} of #{node.name}"
                 return last_node
               else
-                # puts "Recursively searching #{last_node.name}"
+                puts "Recursively searching #{last_node.name}"
                 return search(last_node, dim, value, position)
               end
             else
-              # puts "The index #{last_index} of the last dimension of #{node.name}, #{last_dimension}, wasn't less than search position #{position}, returning nil"
+              puts "The index #{last_index} of the last dimension of #{node.name}, #{last_dimension}, wasn't less than search position #{position}, returning nil"
               return nil
             end
           end

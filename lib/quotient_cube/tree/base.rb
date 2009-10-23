@@ -47,7 +47,7 @@ module QuotientCube
       
         # Expand measures
         measures = meta_query('measures') if measures == :all
-        
+
         case query_type
         when :point
           return Query::Point.new(self, conditions, measures).process
@@ -56,6 +56,8 @@ module QuotientCube
           dimensions.each do |dimension|
             conditions[dimension] = '*' if conditions[dimension].nil?
           end
+            
+          puts "Range query for #{measures.inspect} on #{conditions.inspect}"
           
           return Query::Range.new(self, conditions, measures).process
         else
