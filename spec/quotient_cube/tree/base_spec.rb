@@ -200,4 +200,70 @@ describe QuotientCube::Tree::Base do
         ]
     end
   end
+
+  describe "with only one row" do
+    before(:each) do
+      @table = Table.new(
+        :column_names => [
+          'hour', 'user[source]', 'user[age]', 'event[name]', 'user[id]'
+        ], :data => [
+          ['340023', 'blog', 'NULL', 'signup', '1'],
+        ]
+      )
+    
+      @dimensions = ['hour', 'user[source]', 'user[age]', 'event[name]']
+      @measures = ['events[count]', 'events[percentage]', 'users[count]', 'users[percentage]']
+    
+      total_events = @table.length
+      total_users = @table.distinct('user[id]').length
+      
+      @cube = QuotientCube::Base.build(
+        @table, @dimensions, @measures
+      ) do |table, pointers|
+        events_count = pointers.length
+        events_percentage = (events_count / total_events.to_f) * 100
+        
+        users = Set.new
+        pointers.each do |pointer|
+          users << @table[pointer]['user[id]']
+        end
+        
+        users_count = users.length
+        users_percentage = (users_count / total_users.to_f) * 100
+        
+        [events_count, events_percentage, users_count, users_percentage]
+      end
+  
+      @tempfile = Tempfile.new('database')
+      @database = TokyoCabinet::BDB.new
+      @database.open(@tempfile.path, BDB::OWRITER | BDB::OCREAT)
+
+      @tree = QuotientCube::Tree::Builder.new(
+                  @database, @cube, :prefix => 'prefix').build
+    end
+
+    after(:each) do
+      @database.close
+    end
+    
+    it "should collapse fixed dimensions" do
+      @tree.fixed.should == {
+        'hour' => '340023', 'user[source]' => 'blog', 
+        'user[age]' => 'NULL', 'event[name]' => 'signup'}
+      
+      @tree.dimensions.should == []
+    end
+    
+    it "should answer a variety of queries" do
+      @tree.find(:all).should == {
+        'events[count]' => 1, 'events[percentage]' => 100.0,
+        'users[count]' => 1, 'users[percentage]' => 100.0
+      }
+      
+      @tree.find('events[count]', 
+        :conditions => {'hour' => :all}).should == {'events[count]' => 1}
+      
+      @tree.find('events[count]', :conditions => {'hour' => 'fake'}).should == nil
+    end
+  end
 end
