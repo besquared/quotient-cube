@@ -45,7 +45,7 @@ module QuotientCube
       values.each do |dimension, values|
         if values.length == 1
           @fixed[dimension] = values.first
-          dimensions.delete(dimension)
+          @dimensions.delete(dimension)
         end
       end
     end

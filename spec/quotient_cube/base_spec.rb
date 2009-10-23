@@ -357,10 +357,6 @@ describe QuotientCube::Base do
       end
     end
     
-    after(:each) do
-      @database.close
-    end
-    
     it "should collapse fixed dimensions" do
       @cube.fixed.should == {'hour' => '340023', 'event[name]' => 'signup'}
       @cube.dimensions.should == ['user[source]', 'user[age]']

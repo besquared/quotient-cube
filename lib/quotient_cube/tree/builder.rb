@@ -35,10 +35,10 @@ module QuotientCube
           current = cube[index + 1]
       
           if current['upper'] != last['upper']
-            puts %{
-              Found new upper bound, writing 
-              nodes for #{current['upper'].inspect}
-            }.squish
+            # puts %{
+            #   Found new upper bound, writing 
+            #   nodes for #{current['upper'].inspect}
+            # }.squish
             
             node_index[row['id']] = {
               :nodes => last_built, :upper => last['upper']
@@ -68,10 +68,10 @@ module QuotientCube
             cube.dimensions.each_with_index do |dimension, position|
               if child[:upper][position] == '*' and lower[position] != '*'
                 
-                puts %{
-                  Building link from #{child[:nodes].compact.last} to 
-                  #{last_built[position]} on dimension #{dimension}
-                }.squish
+                # puts %{
+                #   Building link from #{child[:nodes].compact.last} to 
+                #   #{last_built[position]} on dimension #{dimension}
+                # }.squish
                 
                 build_link(child[:nodes].compact.last, last_built[position], dimension)
                 break
@@ -118,7 +118,7 @@ module QuotientCube
           if bound[index] != '*'
             dimension = last_node.dimensions.create(dimension)
             last_node = dimension.children.create(bound[index])
-            puts "Created node #{last_node}"
+            # puts "Created node #{last_node}"
             nodes << last_node
           else
             nodes << nil
