@@ -32,16 +32,23 @@ module QuotientCube
             # puts "Didn't find an edge labeled #{dim} from #{node.name}"
             
             last_dimension = last_node_dimension(node)
-            last_index = tree.dimensions.index(last_dimension.name)
             
-            # puts "Looking at the last child of #{last_dimension} of #{node.name}"
+            if last_dimension.nil?
+              return last_dimension
+            else
+              last_index = tree.dimensions.index(last_dimension.name)
+            end
+            
+            # puts "Looking at the last child of the last dimension #{last_dimension} of #{node.name}"
 
             if last_index < position
               last_node = last_dimension.children.last
               
-              if node.nil?
+              # puts "last child was #{last_node}"
+              
+              if last_node.nil?
                 # puts "Didn't find any child nodes of the last dimension #{last_dimension} of #{node.name}"
-                return node
+                return last_node
               else
                 # puts "Recursively searching #{last_node.name}"
                 return search(last_node, dim, value, position)

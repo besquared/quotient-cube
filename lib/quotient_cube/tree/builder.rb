@@ -18,11 +18,18 @@ module QuotientCube
       end
       
       def build
+        return if cube.length == 0
+        
         build_meta
         build_root
+        
+        # this isn't right, it thinks we already
+        #  built the upper of the first row, but we
+        #  never did, we need to do that
       
         last = cube.first
-        last_built = [tree.nodes.root]
+        last_built = build_nodes(cube[0]['upper'], cube[0])
+        last_built = [tree.nodes.root] if last_built.compact.empty?
         cube.each_with_index do |row, index|
           next if index == cube.length - 1
       
@@ -67,8 +74,8 @@ module QuotientCube
               if child[:upper][position] == '*' and lower[position] != '*'
                 
                 # puts %{
-                #   Building link from #{child[:node].name} to 
-                #   #{current['upper'].inspect} on dimension #{dimension}
+                #   Building link from #{child[:nodes].compact.last} to 
+                #   #{last_built[position]} on dimension #{dimension}
                 # }.squish
                 
                 build_link(child[:nodes].compact.last, last_built[position], dimension)
@@ -117,7 +124,7 @@ module QuotientCube
             nodes << nil
           end
         end
-        
+                
         cube.measures.each do |measure|
           # puts "Creating measure #{measure} => #{row[measure]} on node #{last_node}"
           last_node.measures.create(measure, row[measure].to_s)

@@ -1,7 +1,7 @@
 require File.join(File.dirname(__FILE__), '..', '..', 'spec_helper')
 
 describe QuotientCube::Tree::Base do
-  describe "With the store, product, season data set" do
+  describe "with the store, product, season data set" do
     before(:each) do
       @table = Table.new(
         :column_names => [
@@ -30,7 +30,7 @@ describe QuotientCube::Tree::Base do
       @tempfile = Tempfile.new('database')
       @database = TokyoCabinet::BDB.new
       @database.open(@tempfile.path, BDB::OWRITER | BDB::OCREAT)
-
+  
       @tree = QuotientCube::Tree::Builder.new(
                   @database, @cube, :prefix => 'prefix').build
     end
@@ -75,6 +75,82 @@ describe QuotientCube::Tree::Base do
         {'product' => 'P1', 'sales[avg]' => 7.5, 'sales[sum]' => 15.0}, 
         {'product' => 'P2', 'sales[avg]' => 12.0, 'sales[sum]' => 12.0}
       ]
+    end
+  end
+  
+  describe "with the signup source data set" do
+    before(:each) do
+      @table = Table.new(
+        :column_names => [
+          'hour', 'user[source]', 'user[age]', 'event[name]', 'user[id]'
+        ], :data => [
+          ['340023', 'blog', 'NULL', 'signup', '1'],
+          ['340023', 'blog', 'NULL', 'signup', '2'],
+          ['340023', 'twitter', '14', 'signup', '3']
+        ]
+      )
+    
+      @dimensions = ['hour', 'user[source]', 'user[age]', 'event[name]']
+      @measures = ['events[count]', 'events[percentage]', 'users[count]', 'users[percentage]']
+    
+      total_events = @table.length
+      total_users = @table.distinct('user[id]').length
+      
+      @cube = QuotientCube::Base.build(
+        @table, @dimensions, @measures
+      ) do |table, pointers|
+        events_count = pointers.length
+        events_percentage = (events_count / total_events.to_f) * 100
+        
+        users = Set.new
+        pointers.each do |pointer|
+          users << @table[pointer]['user[id]']
+        end
+        
+        users_count = users.length
+        users_percentage = (users_count / total_users.to_f) * 100
+        
+        [events_count, events_percentage, users_count, users_percentage]
+      end
+      
+      @tempfile = Tempfile.new('database')
+      @database = TokyoCabinet::BDB.new
+      @database.open(@tempfile.path, BDB::OWRITER | BDB::OCREAT)
+
+      @tree = QuotientCube::Tree::Builder.new(
+                  @database, @cube, :prefix => 'prefix').build
+    end
+    
+    after(:each) do
+      @database.close
+    end
+    
+    it "should have the correct dimensions" do
+      @tree.dimensions.should == ['hour', 'user[source]', 'user[age]', 'event[name]']
+    end
+    
+    it "should have the correct measures" do
+      @tree.measures.should == ['events[count]', 'events[percentage]', 'users[count]', 'users[percentage]']
+    end
+    
+    it "should get a list of values" do
+      @tree.values('hour').should == ['340023']
+      @tree.values('user[source]').should == ['blog', 'twitter']
+      @tree.values('user[age]').should == ['14', 'NULL']
+      @tree.values('event[name]').should == ['signup']
+    end
+    
+    it "should answer various queries" do      
+      @tree.find(:all).should == {
+        'events[count]' => 3, 'events[percentage]' => 100.0,
+        'users[count]' => 3, 'users[percentage]' => 100.0
+      }
+      
+      value = @tree.find('events[percentage]', 
+                :conditions => {'user[source]' => 'twitter'})
+      
+      value.key?('events[percentage]').should == true
+      (value['events[percentage]'] * 100).to_i.should == 3333
     end
   end
 end
