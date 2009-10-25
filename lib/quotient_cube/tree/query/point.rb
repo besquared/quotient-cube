@@ -2,7 +2,7 @@ module QuotientCube
   module Tree
     module Query
       class Point < Base
-        def process
+        def process(selected = {})
           node = tree.nodes.root
           
           tree.dimensions.each_with_index do |dimension, index|
@@ -18,7 +18,7 @@ module QuotientCube
           if node.nil?
             return node
           else
-            return search_measures(node, measures)
+            return search_measures(node, measures).merge(selected)
           end
         end
       end

@@ -57,13 +57,14 @@ describe QuotientCube::Tree::Base do
       @tree.find(:all).should == {'sales[sum]' => 27.0, 'sales[avg]' => 9.0}
       
       @tree.find('sales[avg]', 
-        :conditions => {'product' => 'P1'}).should == {'sales[avg]' => 7.5}
+        :conditions => {'product' => 'P1'}).should == {'product' => 'P1', 'sales[avg]' => 7.5}
       
       @tree.find('sales[avg]', 'sales[sum]').should == \
         {'sales[sum]' => 27.0, 'sales[avg]' => 9.0}
       
       @tree.find('sales[avg]', 
-        :conditions => {'product' => 'P1', 'season' => 'f'}).should == {'sales[avg]' => 9.0}
+        :conditions => {'product' => 'P1', 'season' => 'f'}).should == \
+          {'product' => 'P1', 'season' => 'f', 'sales[avg]' => 9.0}
       
       @tree.find('sales[avg]',
         :conditions => {'product' => ['P1', 'P2', 'P3']}).should == [
@@ -142,38 +143,44 @@ describe QuotientCube::Tree::Base do
       @tree.find(:all, :conditions => {'event[name]' => ['fake1', 'fake2']}).should == nil
       
       @tree.find(:all, :conditions => {'hour' => '340023'}).should == {
+        'hour' => '340023',
         'events[count]' => 3, 'events[percentage]' => 100.0,
         'users[count]' => 3, 'users[percentage]' => 100.0
       }
       
       @tree.find(:all, :conditions => {'hour' => ['340023']}).should == {
+        'hour' => '340023',
         'events[count]' => 3, 'events[percentage]' => 100.0,
         'users[count]' => 3, 'users[percentage]' => 100.0
       }
       
       @tree.find(:all, :conditions => {'event[name]' => 'signup'}).should == {
+        'event[name]' => 'signup',
         'events[count]' => 3, 'events[percentage]' => 100.0,
         'users[count]' => 3, 'users[percentage]' => 100.0
       }
       
       @tree.find(:all, :conditions => {'event[name]' => ['signup']}).should == {
+        'event[name]' => 'signup',
         'events[count]' => 3, 'events[percentage]' => 100.0,
         'users[count]' => 3, 'users[percentage]' => 100.0
       }
       
       @tree.find(:all, :conditions => {'hour' => :all}).should == {
+        'hour' => '340023',
         'events[count]' => 3, 'events[percentage]' => 100.0,
         'users[count]' => 3, 'users[percentage]' => 100.0
       }
       
       @tree.find(:all, :conditions => {'event[name]' => :all}).should == {
+        'event[name]' => 'signup',
         'events[count]' => 3, 'events[percentage]' => 100.0,
         'users[count]' => 3, 'users[percentage]' => 100.0
       }
       
       @tree.find('events[count]', :conditions => {
         'user[age]' => '14', 'event[name]' => 'signup'
-      }).should == {'events[count]' => 1.0}
+      }).should == {'user[age]' => '14', 'event[name]' => 'signup', 'events[count]' => 1.0}
       
       @tree.find('events[count]', :conditions => {
         'user[age]' => '14', 'event[name]' => 'fake'
@@ -191,7 +198,8 @@ describe QuotientCube::Tree::Base do
       (value['events[percentage]'] * 100).to_i.should == 3333
       
       @tree.find('users[count]', 
-        :conditions => {'user[age]' => 'NULL'}).should == {'users[count]' => 2.0}
+        :conditions => {'user[age]' => 'NULL'}).should == \
+          {'user[age]' => 'NULL', 'users[count]' => 2.0}
       
       @tree.find('users[count]', 
         :conditions => {'user[age]' => :all}).should == [
@@ -261,7 +269,7 @@ describe QuotientCube::Tree::Base do
       }
       
       @tree.find('events[count]', 
-        :conditions => {'hour' => :all}).should == {'events[count]' => 1}
+        :conditions => {'hour' => :all}).should == {'hour' => '340023', 'events[count]' => 1}
       
       @tree.find('events[count]', :conditions => {'hour' => 'fake'}).should == nil
     end

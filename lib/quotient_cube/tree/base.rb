@@ -32,6 +32,7 @@ module QuotientCube
         
         measures = args.first == :all ? args.first : args
         conditions = (options and options[:conditions]) || {}
+        selected = conditions.dup
         
         query_type = :point
         conditions.each do |dimension, value|
@@ -39,6 +40,7 @@ module QuotientCube
             if fixed[dimension]
               if value.include?(fixed[dimension])
                 conditions.delete(dimension)
+                selected[dimension] = fixed[dimension]
               else
                 return nil
               end
@@ -52,6 +54,7 @@ module QuotientCube
             if fixed[dimension]
               if conditions[dimension].include?(fixed[dimension])
                 conditions.delete(dimension)
+                selected[dimension] = fixed[dimension]
               else
                 return nil
               end
@@ -74,7 +77,7 @@ module QuotientCube
         
         case query_type
         when :point
-          return Query::Point.new(self, conditions, measures).process
+          return Query::Point.new(self, conditions, measures).process(selected)
         when :range
           # Fill in conditions
           dimensions.each do |dimension|
