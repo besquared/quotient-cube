@@ -62,10 +62,10 @@ module QuotientCube
         return @values
       else
         values = {}
-        table.data.each do |row|
-          dimensions.each_with_index do |dimension, index|
+        table.each do |row|
+          dimensions.each do |dimension|
             values[dimension] ||= []
-            values[dimension] << row[index]
+            values[dimension] << row[dimension]
           end
         end
         

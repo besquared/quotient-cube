@@ -373,6 +373,58 @@ describe QuotientCube::Base do
     end
   end
   
+  describe "with a table that has fixed dimensions and doesn't cube by all of them" do
+    before(:each) do
+      @table = Table.new(
+        :column_names => [
+          'hour', 'user[source]', 'user[age]', 'event[name]', 'user[id]'
+        ], :data => [
+          ['340023', 'blog', 'NULL', 'signup', '1'],
+          ['340023', 'blog', 'NULL', 'signup', '2'],
+          ['340023', 'twitter', '14', 'signup', '3']
+        ]
+      )
+    
+      @dimensions = ['user[source]', 'user[age]', 'event[name]']
+      @measures = ['events[count]', 'events[percentage]', 'users[count]', 'users[percentage]']
+    
+      total_events = @table.length
+      total_users = @table.distinct('user[id]').length
+      
+      @cube = QuotientCube::Base.build(
+        @table, @dimensions, @measures
+      ) do |table, pointers|
+        events_count = pointers.length
+        events_percentage = (events_count / total_events.to_f) * 100
+        
+        users = Set.new
+        pointers.each do |pointer|
+          users << @table[pointer]['user[id]']
+        end
+        
+        users_count = users.length
+        users_percentage = (users_count / total_users.to_f) * 100
+        
+        [events_count, events_percentage, users_count, users_percentage]
+      end
+    end
+    
+    it "should collapse fixed dimensions" do      
+      @cube.fixed.should == {'event[name]' => 'signup'}
+      @cube.dimensions.should == ['user[source]', 'user[age]']
+      
+      uppers, lowers = [['*', '*'], ['blog', 'NULL'], 
+        ['blog', 'NULL'], ['twitter', '14'], ['twitter', '14']], 
+      [['*', '*'], ['blog', '*'], ['*', 'NULL'], 
+        ['twitter', '*'], ['*', '14']]
+      
+      @cube.each_with_index do |row, index|
+        row['upper'].should == uppers[index]
+        row['lower'].should == lowers[index]
+      end
+    end
+  end
+  
   describe "with only one row" do
     before(:each) do
       @table = Table.new(
