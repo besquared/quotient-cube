@@ -73,11 +73,19 @@ describe QuotientCube::Tree::Query::Range do
         {'product' => 'P1', 'sales' => 7.5},
         {'product' => 'P2', 'sales' => 12}
       ]
+      
+      puts QuotientCube::Tree::Query::Range.new(@tree, {
+        'store' => ['S1', 'S2'],  'product' => ['P1', 'P2'], 'season' => ['s', 'f']
+      }, ['sales']).process.should == [
+        {"sales"=>6.0, "store"=>"S1", "season"=>"s", "product"=>"P1"}, 
+        {"sales"=>12.0, "store"=>"S1", "season"=>"s", "product"=>"P2"}, 
+        {"sales"=>9.0, "store"=>"S2", "season"=>"f", "product"=>"P1"}
+      ]
     end
     
     # it "should benchmark" do
     #   puts Benchmark.measure {
-    #     1000.times {
+    #     2500.times {
     #       QuotientCube::Tree::Query::Range.new(@tree, {
     #         'store' => ['S1', 'S2', 'S3'], 
     #         'product' => ['P1', 'P3'], 'season' => 'f'

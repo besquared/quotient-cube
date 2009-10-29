@@ -67,6 +67,18 @@ describe QuotientCube::Tree::Query::Point do
         @tree, {'store' => 'S1', 'product' => 'P1'}, ['sales']
       ).process.should == {'sales' => 6}
     end
+    
+    # it "should benchmark" do
+    #   puts Benchmark.measure {
+    #     query = QuotientCube::Tree::Query::Point.new(
+    #       @tree, {'store' => 'S2', 'season' => 's'}, ['sales']
+    #     )
+    #     
+    #     7000.times {
+    #       query.process
+    #     }
+    #   }
+    # end
   end
   
   describe "With the location, product, time data set" do
