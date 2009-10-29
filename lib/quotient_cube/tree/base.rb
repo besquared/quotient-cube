@@ -84,7 +84,7 @@ module QuotientCube
             conditions[dimension] = '*' if conditions[dimension].nil?
           end
           
-          puts "Range query for #{measures.inspect} on #{conditions.inspect}"
+          # puts "Range query for #{measures.inspect} on #{conditions.inspect}"
           
           return Query::Range.new(self, conditions, measures).process
         end

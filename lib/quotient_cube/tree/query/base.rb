@@ -23,14 +23,14 @@ module QuotientCube
         #  with that label
         #
         def search(node_id, dim, value, position)
-          puts "#{node_id}, #{dim}, #{value}, #{position}"
+          # puts "#{node_id}, #{dim}, #{value}, #{position}"
           dimension = tree.nodes.dimension(node_id, dim)
           
           if dimension
-            puts "Found an edge labeled #{dimension} from node #{node_id}"
+            # puts "Found an edge labeled #{dimension} from node #{node_id}"
             return tree.nodes.child(node_id, dimension, value)
           else
-            puts "Didn't find an edge labeled #{dim} from #{node_id}"
+            # puts "Didn't find an edge labeled #{dim} from #{node_id}"
             
             last_dimension = last_node_dimension(node_id)
             
@@ -40,23 +40,23 @@ module QuotientCube
               last_index = tree.dimensions.index(last_dimension)
             end
             
-            puts "Looking at the last child of the last dimension #{last_dimension} of #{node_id}"
+            # puts "Looking at the last child of the last dimension #{last_dimension} of #{node_id}"
 
             if last_index < position
               last_name = tree.nodes.children(node_id, last_dimension).last
               last_node = tree.nodes.child(node_id, last_dimension, last_name)
               
-              puts "last child was #{last_name} => #{last_node}"
+              # puts "last child was #{last_name} => #{last_node}"
               
               if last_node.nil?
-                puts "Didn't find any child nodes of the last dimension #{last_dimension} of #{node_id}"
+                # puts "Didn't find any child nodes of the last dimension #{last_dimension} of #{node_id}"
                 return last_node
               else
-                puts "Recursively searching #{last_name}"
+                # puts "Recursively searching #{last_name}"
                 return search(last_node, dim, value, position)
               end
             else
-              puts "The index #{last_index} of the last dimension of #{node_id}, #{last_dimension}, wasn't less than search position #{position}, returning nil"
+              # puts "The index #{last_index} of the last dimension of #{node_id}, #{last_dimension}, wasn't less than search position #{position}, returning nil"
               return nil
             end
           end
