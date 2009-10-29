@@ -14,7 +14,7 @@ module QuotientCube
       def initialize(database, options = {})
         @database = database
         @options = options
-        @nodes = Nodes.new(self)
+        @nodes = NodeManager.new(self)
       end
     
       # 
@@ -84,7 +84,7 @@ module QuotientCube
             conditions[dimension] = '*' if conditions[dimension].nil?
           end
           
-          # puts "Range query for #{measures.inspect} on #{conditions.inspect}"
+          puts "Range query for #{measures.inspect} on #{conditions.inspect}"
           
           return Query::Range.new(self, conditions, measures).process
         end

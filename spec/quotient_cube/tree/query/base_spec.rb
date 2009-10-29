@@ -1,7 +1,7 @@
 require File.join(File.dirname(__FILE__), '..', '..', '..', 'spec_helper')
 
 describe QuotientCube::Tree::Query::Base do
-  describe "With store, product and seasond dataset" do
+  describe "With store, product and season dataset" do
     before(:each) do
       @table = Table.new(
         :column_names => [
@@ -44,7 +44,7 @@ describe QuotientCube::Tree::Query::Base do
     end
   
     it "should get the last dimension for a node" do
-      @query.last_node_dimension(@tree.nodes.root).name.should == 'season'
+      @query.last_node_dimension(@tree.nodes.root).should == 'season'
     end
   
     it "should return nil if a value doesn't exist for a dimension" do
@@ -54,16 +54,14 @@ describe QuotientCube::Tree::Query::Base do
   
     it "should search a shallow route" do
       node = @query.search(@tree.nodes.root, 'product', 'P1', 0)
-      node.name.should == 'P1'
-      node.id.should == '2'
+      node.should == '2'
     end
   
     it "should search a deep route" do
       root = @tree.nodes.root
-      node = root.dimensions.find('store').children.find('S2')
+      node = @tree.nodes.child(root, 'store', 'S2')
       node = @query.search(node, 'season', 'f', 2)
-      node.name.should == 'f'
-      node.id.should == '11'
+      node.should == '11'
     end
   
     it "should return shallow measures" do
@@ -79,14 +77,14 @@ describe QuotientCube::Tree::Query::Base do
   
     it "should return more shallow measures" do
       root = @tree.nodes.root
-      node = root.dimensions.find('season').children.find('s')
+      node = @tree.nodes.child(root, 'season', 's')
       measures = @query.search_measures(node, ['sales'])
       measures.should == {'sales' => 9.0}
     end
   
     it "should return deep measures" do
       root = @tree.nodes.root
-      node = root.dimensions.find('store').children.find('S2')
+      node = @tree.nodes.child(root, 'store', 'S2')
       measures = @query.search_measures(node, ['sales'])
       measures.should == {'sales' => 9.0}
     end

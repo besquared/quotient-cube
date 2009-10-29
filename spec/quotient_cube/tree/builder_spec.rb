@@ -51,7 +51,8 @@ describe QuotientCube::Tree::Builder do
     it "should build root" do
       @builder.build_root
       @database.get('prefix:root').should == '1'
-      @database.getlist('prefix:1:measures').should == ['sales:9.0']
+      @database.getlist('prefix:1:measures').should == ['sales']
+      @database.get('prefix:1:{sales}').should == '9.0'
     end
     
     it "should build nodes" do
@@ -59,12 +60,16 @@ describe QuotientCube::Tree::Builder do
       @builder.build_nodes(['S1', 'P1', 's'], {'sales' => 6.0})
       
       @database.getlist('prefix:1:dimensions').should == ['store']
-      @database.getlist('prefix:1:[store]').should == ['2:S1']
+      @database.getlist('prefix:1:[store]').should == ['S1']
+      @database.get('prefix:1:[store]:S1').should == '2'
       @database.getlist('prefix:2:dimensions').should == ['product']
-      @database.getlist('prefix:2:[product]').should == ['3:P1']
+      @database.getlist('prefix:2:[product]').should == ['P1']
+      @database.get('prefix:2:[product]:P1').should == '3'
       @database.getlist('prefix:3:dimensions').should == ['season']
-      @database.getlist('prefix:3:[season]').should == ['4:s']
-      @database.getlist('prefix:4:measures').should == ['sales:6.0']
+      @database.getlist('prefix:3:[season]').should == ['s']
+      @database.get('prefix:3:[season]:s').should == '4'
+      @database.getlist('prefix:4:measures').should == ['sales']
+      @database.get('prefix:4:{sales}').should == '6.0'
     end
     
     it "should build link" do
@@ -73,10 +78,11 @@ describe QuotientCube::Tree::Builder do
       destination = @builder.build_nodes(['S1', 'P1', 's'], {'sales' => 6.0})
       source = @builder.build_nodes(['*', 'P1', '*'], {'sales' => 7.5})
       
-      @builder.build_link(source.compact.last, destination.last, 'season')
+      @builder.build_link(source.compact.last, destination.last, 's', 'season')
       
       @database.getlist('prefix:5:dimensions').should == ['season']
-      @database.getlist('prefix:5:[season]').should == ['4:s']
+      @database.getlist('prefix:5:[season]').should == ['s']
+      @database.get('prefix:5:[season]:s').should == '4'
     end
     
     it "should build quotient cube tree" do
@@ -91,38 +97,59 @@ describe QuotientCube::Tree::Builder do
       @database.getlist("prefix:[season]").should == ["f", "s"]
 
       @database.getlist("prefix:1:dimensions").should == ["product", "store", "season"]
-      @database.getlist("prefix:1:measures").should == ["sales:9.0"]
-      @database.getlist("prefix:1:[store]").should == ["3:S1", "9:S2"]
-      @database.getlist("prefix:1:[product]").should == ["2:P1", "7:P2"]
-      @database.getlist("prefix:1:[season]").should == ["4:s", "11:f"]
+      @database.getlist("prefix:1:measures").should == ["sales"]
+      @database.get("prefix:1:{sales}").should == '9.0'
+      @database.getlist("prefix:1:[store]").should == ["S1", "S2"]
+      @database.get("prefix:1:[store]:S1").should == '3'
+      @database.get("prefix:1:[store]:S2").should == '9'
+      @database.getlist("prefix:1:[product]").should == ["P1", "P2"]
+      @database.get('prefix:1:[product]:P1').should == '2'
+      @database.get('prefix:1:[product]:P2').should == '7'
+      @database.getlist("prefix:1:[season]").should == ["s", "f"]
+      @database.get('prefix:1:[season]:s').should == '4'
+      @database.get('prefix:1:[season]:f').should == '11'
 
       @database.getlist("prefix:2:dimensions").should == ["season"]
-      @database.getlist("prefix:2:measures").should == ["sales:7.5"]
-      @database.getlist("prefix:2:[season]").should == ["6:s", "11:f"]
+      @database.getlist("prefix:2:measures").should == ["sales"]
+      @database.get("prefix:2:{sales}").should == "7.5"
+      @database.getlist("prefix:2:[season]").should == ["s", "f"]
+      @database.get("prefix:2:[season]:s").should == '6'
+      @database.get("prefix:2:[season]:f").should == '11'
 
       @database.getlist("prefix:3:dimensions").should == ["season", "product"]
-      @database.getlist("prefix:3:[season]").should == ["4:s"]
-      @database.getlist("prefix:3:[product]").should == ["5:P1", "7:P2"]
+      @database.getlist("prefix:3:[season]").should == ["s"]
+      @database.get("prefix:3:[season]:s").should == '4'
+      @database.getlist("prefix:3:[product]").should == ["P1", "P2"]
+      @database.get("prefix:3:[product]:P1").should == '5'
+      @database.get("prefix:3:[product]:P2").should == '7'
 
-      @database.getlist("prefix:4:measures").should == ["sales:9.0"]
+      @database.getlist("prefix:4:measures").should == ["sales"]
+      @database.get("prefix:4:{sales}").should == '9.0'
 
       @database.getlist("prefix:5:dimensions").should == ["season"]
-      @database.getlist("prefix:5:[season]").should == ["6:s"]
+      @database.getlist("prefix:5:[season]").should == ["s"]
+      @database.get("prefix:5:[season]:s").should == '6'
 
-      @database.getlist("prefix:6:measures").should == ["sales:6.0"]
+      @database.getlist("prefix:6:measures").should == ["sales"]
+      @database.get("prefix:6:{sales}").should == '6.0'
 
       @database.getlist("prefix:7:dimensions").should == ["season"]
-      @database.getlist("prefix:7:[season]").should == ["8:s"]
+      @database.getlist("prefix:7:[season]").should == ["s"]
+      @database.get("prefix:7:[season]:s").should == '8'
 
-      @database.getlist("prefix:8:measures").should == ["sales:12.0"]
+      @database.getlist("prefix:8:measures").should == ["sales"]
+      @database.get('prefix:8:{sales}').should == '12.0'
 
       @database.getlist("prefix:9:dimensions").should == ["product"]
-      @database.getlist("prefix:9:[product]").should == ["10:P1"]
+      @database.getlist("prefix:9:[product]").should == ["P1"]
+      @database.get("prefix:9:[product]:P1").should == '10'
 
       @database.getlist("prefix:10:dimensions").should == ["season"]
-      @database.getlist("prefix:10:[season]").should == ["11:f"]
+      @database.getlist("prefix:10:[season]").should == ["f"]
+      @database.get("prefix:10:[season]:f").should == '11'
 
-      @database.getlist("prefix:11:measures").should == ["sales:9.0"]
+      @database.getlist("prefix:11:measures").should == ["sales"]
+      @database.get("prefix:11:{sales}").should == '9.0'
     end
     
     it "should be able to put more than one tree into a single database" do
@@ -137,8 +164,8 @@ describe QuotientCube::Tree::Builder do
       
       @builder.build
       
-      @database.fwmkeys('prefix:').length.should == 30
-      @database.fwmkeys('prefix2:').length.should == 30
+      @database.fwmkeys('prefix:').length.should == 51
+      @database.fwmkeys('prefix2:').length.should == 51
     end
   end
   

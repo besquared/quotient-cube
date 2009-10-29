@@ -29,23 +29,21 @@ module QuotientCube
       
         last = cube.first
         last_built = [tree.nodes.root]
+        node_index[0] = {:nodes => last_built, :upper => last['upper']}
+        
         cube.each_with_index do |row, index|
           next if index == cube.length - 1
       
           current = cube[index + 1]
-      
+          
           if current['upper'] != last['upper']
             # puts %{
             #   Found new upper bound, writing 
             #   nodes for #{current['upper'].inspect}
             # }.squish
             
-            node_index[row['id']] = {
-              :nodes => last_built, :upper => last['upper']
-            }
-            
-            last_built = build_nodes(current['upper'], current)
-            last = current.dup
+            last_built, last = build_nodes(current['upper'], current), current.dup            
+            node_index[current['id']] = {:nodes => last_built, :upper => last['upper']}
           else
             #
             # If we've found a new
@@ -73,7 +71,7 @@ module QuotientCube
                 #   #{last_built[position]} on dimension #{dimension}
                 # }.squish
                 
-                build_link(child[:nodes].compact.last, last_built[position], dimension)
+                build_link(child[:nodes].compact.last, last_built[position], lower[position], dimension)
                 break
               end
             end
@@ -97,10 +95,9 @@ module QuotientCube
       end
       
       def build_root
-        root = Node.create(tree, 'root')
-        database.put("#{prefix}root", root.id.to_s)
+        root = tree.nodes.create_root
         cube.measures.each do |measure|
-          root.measures.create(measure, cube.first[measure])
+          tree.nodes.add_measure(root, measure, cube.first[measure])
         end
       end
       
@@ -116,9 +113,8 @@ module QuotientCube
         last_node = tree.nodes.root
         cube.dimensions.each_with_index do |dimension, index|
           if bound[index] != '*'
-            dimension = last_node.dimensions.create(dimension)
-            last_node = dimension.children.create(bound[index])
-            # puts "Created node #{last_node}"
+            dimension = tree.nodes.add_dimension(last_node, dimension)
+            last_node = tree.nodes.add_child(last_node, dimension, bound[index])
             nodes << last_node
           else
             nodes << nil
@@ -127,14 +123,15 @@ module QuotientCube
                 
         cube.measures.each do |measure|
           # puts "Creating measure #{measure} => #{row[measure]} on node #{last_node}"
-          last_node.measures.create(measure, row[measure].to_s)
+          tree.nodes.add_measure(last_node, measure, row[measure])
         end
         
         nodes
       end
       
-      def build_link(source, destination, dimension)
-        source.dimensions.create(dimension).children.add(destination)
+      def build_link(source, destination, name, dimension)
+        dimension = tree.nodes.add_dimension(source, dimension)
+        linked = tree.nodes.add_child(source, dimension, name, destination)
       end
       
       def prefix

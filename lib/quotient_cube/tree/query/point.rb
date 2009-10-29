@@ -3,22 +3,22 @@ module QuotientCube
     module Query
       class Point < Base
         def process(selected = {})
-          node = tree.nodes.root
+          node_id = tree.nodes.root
           
           tree.dimensions.each_with_index do |dimension, index|
             value = conditions[dimension]
 
             if value != nil and value != '*'
-              node = search(node, dimension, value, index)
+              node_id = search(node_id, dimension, value, index)
             end
             
-            break if node == nil
+            break if node_id == nil
           end
 
-          if node.nil?
-            return node
+          if node_id.nil?
+            return node_id
           else
-            return search_measures(node, measures).merge(selected)
+            return search_measures(node_id, measures).merge(selected)
           end
         end
       end

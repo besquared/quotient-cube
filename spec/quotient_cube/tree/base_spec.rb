@@ -53,7 +53,7 @@ describe QuotientCube::Tree::Base do
       @tree.values('season').should == ['f', 's']
     end
     
-    it "should answer point and range queries" do      
+    it "should answer point and range queries" do
       @tree.find(:all).should == {'sales[sum]' => 27.0, 'sales[avg]' => 9.0}
       
       @tree.find('sales[avg]', 
