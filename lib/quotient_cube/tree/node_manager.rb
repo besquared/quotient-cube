@@ -18,6 +18,7 @@ module QuotientCube
       def create_root
         if root.nil?
           root_id = create
+          log("Writing root node #{root_id}")
           database.put("#{prefix}root", root_id)
           return root_id
         else
@@ -51,9 +52,10 @@ module QuotientCube
       end
       
       def add_dimension(node_id, name)
-        if dimensions(node_id).include?(name)
+        if dimensions(node_id).include?(name.to_s)
           return name
         else
+          log("Adding dimension #{name} to node #{node_id}")
           database.putdup("#{prefix}#{node_id}:dimensions", name)
           return name
         end
@@ -76,10 +78,11 @@ module QuotientCube
       end
       
       def add_child(node_id, dimension, name, id = nil)
-        if children(node_id, dimension).include?(name)
+        if children(node_id, dimension).include?(name.to_s)
           return child(node_id, dimension, name)
         else
           child_id = id.nil? ? create : id
+          log("Adding child #{name} to dimension #{dimension} of node #{node_id} as #{child_id}")
           database.putdup("#{prefix}#{node_id}:[#{dimension}]", name)
           database.put("#{prefix}#{node_id}:[#{dimension}]:#{name}", child_id)
           return child_id
@@ -109,9 +112,10 @@ module QuotientCube
       end
       
       def add_measure(node_id, name, value)
-        if measures(node_id).include?(name)
+        if measures(node_id).include?(name.to_s)
           return measure(node_id, name)
         else
+          log("Adding measure #{name} with value #{value} to node #{node_id}")
           database.putdup("#{prefix}#{node_id}:measures", name)
           database.put("#{prefix}#{node_id}:{#{name}}", value.to_s)
           return value
@@ -125,6 +129,10 @@ module QuotientCube
       
       def database
         tree.database
+      end
+      
+      def log(message)
+        puts message if false
       end
     end
   end

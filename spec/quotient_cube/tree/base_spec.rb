@@ -117,7 +117,7 @@ describe QuotientCube::Tree::Base do
       @tempfile = Tempfile.new('database')
       @database = TokyoCabinet::BDB.new
       @database.open(@tempfile.path, BDB::OWRITER | BDB::OCREAT)
-
+  
       @tree = QuotientCube::Tree::Builder.new(
                   @database, @cube, :prefix => 'prefix').build
     end
@@ -135,7 +135,7 @@ describe QuotientCube::Tree::Base do
       @tree.values('event[name]').should == ['signup']
       @tree.fixed.should == {'hour' => '340023', 'event[name]' => 'signup'}
     end
-
+  
     it "should answer various queries" do
       @tree.find(:all, :conditions => {'hour' => ['3400231']}).should == nil
       @tree.find(:all, :conditions => {'hour' => '3400231'}).should == nil
@@ -208,7 +208,7 @@ describe QuotientCube::Tree::Base do
         ]
     end
   end
-
+  
   describe "with only one row" do
     before(:each) do
       @table = Table.new(
@@ -245,11 +245,11 @@ describe QuotientCube::Tree::Base do
       @tempfile = Tempfile.new('database')
       @database = TokyoCabinet::BDB.new
       @database.open(@tempfile.path, BDB::OWRITER | BDB::OCREAT)
-
+  
       @tree = QuotientCube::Tree::Builder.new(
                   @database, @cube, :prefix => 'prefix').build
     end
-
+  
     after(:each) do
       @database.close
     end
@@ -272,6 +272,33 @@ describe QuotientCube::Tree::Base do
         :conditions => {'hour' => :all}).should == {'hour' => '340023', 'events[count]' => 1}
       
       @tree.find('events[count]', :conditions => {'hour' => 'fake'}).should == nil
+    end
+  end
+  
+  describe "with the tiny hourly events data set" do
+    before(:each) do
+      base_table = load_fixture('tiny_hourly_events')
+      
+      @dimensions = ['day', 'hour', 'event[name]']
+      @measures = ['events[count]']
+      
+      @cube = QuotientCube::Base.build(base_table, @dimensions, @measures) do |table, pointers|
+        [pointers.length]
+      end
+      
+      @tempfile = Tempfile.new('database')
+      @database = TokyoCabinet::BDB.new
+      @database.open(@tempfile.path, BDB::OWRITER | BDB::OCREAT)
+
+      @tree = QuotientCube::Tree::Builder.new(
+                  @database, @cube, :prefix => 'prefix').build
+    end
+    
+    it "should answer various queries" do
+      @tree.find(:all, :conditions => \
+        {'event[name]' => 'signup', 'hour' => :all}).should == \
+          [{"hour"=>"349205", "event[name]"=>"signup", "events[count]"=>2.0}, 
+          {"hour"=>"349206", "event[name]"=>"signup", "events[count]"=>1.0}]
     end
   end
 end

@@ -122,7 +122,6 @@ module QuotientCube
         end
                 
         cube.measures.each do |measure|
-          # puts "Creating measure #{measure} => #{row[measure]} on node #{last_node}"
           tree.nodes.add_measure(last_node, measure, row[measure])
         end
         

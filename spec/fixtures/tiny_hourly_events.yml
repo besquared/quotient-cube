@@ -1,0 +1,76 @@
+--- !ruby/object:AutobotsTransform::Table 
+column_indexes: 
+  measures[amount]: 7
+  user[source]: 6
+  measures[fees]: 8
+  hour: 1
+  day: 0
+  user[rate_plan]: 5
+  event[occurred_at]: 3
+  event[name]: 2
+  user[id]: 4
+column_names: 
+- day
+- hour
+- event[name]
+- event[occurred_at]
+- user[id]
+- user[rate_plan]
+- user[source]
+- measures[amount]
+- measures[fees]
+data: 
+- - "20091101"
+  - 349205
+  - signup
+  - "1257140287"
+  - "3961"
+  - Silver
+  - Blog
+  - "605.54972804095"
+  - "1.77380110863202"
+- - "20091101"
+  - 349205
+  - signup
+  - "1257140234"
+  - "4643"
+  - Silver
+  - Direct
+  - "767.654334627294"
+  - "0.916073576310067"
+- - "20091101"
+  - 349205
+  - unfollow
+  - "1257141295"
+  - "4680"
+  - Silver
+  - Direct
+  - "905.18840817156"
+  - "7.49967747309457"
+- - "20091101"
+  - 349206
+  - signup
+  - "1257142673"
+  - "4008"
+  - Silver
+  - Fan Page
+  - "225.272622387679"
+  - "5.22340678898109"
+- - "20091101"
+  - 349207
+  - unfollow
+  - "1257147606"
+  - "4075"
+  - Gold
+  - Yahoo
+  - "277.946352831099"
+  - "9.3094478929333"
+- - "20091101"
+  - 349207
+  - unfollow
+  - "1257146127"
+  - "8568"
+  - Silver
+  - Fan Page
+  - "118.109307098333"
+  - "1.71356716573872"
