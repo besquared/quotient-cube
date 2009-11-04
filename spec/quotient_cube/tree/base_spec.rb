@@ -323,7 +323,8 @@ describe QuotientCube::Tree::Base do
     
     it "should answer various queries" do
       @tree.find(:all, :conditions => \
-        {'event[name]' => 'timeline page view', 'day' => :all}).length.should == 3
+        {'event[name]' => :all, 'day' => :all}).select{|row| 
+          row['event[name]'] == 'timeline page view'}.length.should == 3
     end
   end
 end
