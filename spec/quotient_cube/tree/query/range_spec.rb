@@ -74,7 +74,7 @@ describe QuotientCube::Tree::Query::Range do
         {'product' => 'P2', 'sales' => 12}
       ]
       
-      puts QuotientCube::Tree::Query::Range.new(@tree, {
+      QuotientCube::Tree::Query::Range.new(@tree, {
         'store' => ['S1', 'S2'],  'product' => ['P1', 'P2'], 'season' => ['s', 'f']
       }, ['sales']).process.should == [
         {"sales"=>6.0, "store"=>"S1", "season"=>"s", "product"=>"P1"}, 

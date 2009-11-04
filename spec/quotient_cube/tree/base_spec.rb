@@ -301,4 +301,29 @@ describe QuotientCube::Tree::Base do
           {"hour"=>"349206", "event[name]"=>"signup", "events[count]"=>1.0}]
     end
   end
+  
+  describe "with the events2 data set" do
+    before(:each) do
+      base_table = load_fixture('events2')
+      
+      @dimensions = ['day', 'hour', 'event[name]']
+      @measures = ['events[count]']
+      
+      @cube = QuotientCube::Base.build(base_table, @dimensions, @measures) do |table, pointers|
+        [pointers.length]
+      end
+      
+      @tempfile = Tempfile.new('database')
+      @database = TokyoCabinet::BDB.new
+      @database.open(@tempfile.path, BDB::OWRITER | BDB::OCREAT)
+
+      @tree = QuotientCube::Tree::Builder.new(
+                  @database, @cube, :prefix => 'prefix').build
+    end
+    
+    it "should answer various queries" do
+      @tree.find(:all, :conditions => \
+        {'event[name]' => 'timeline page view', 'day' => :all}).length.should == 3
+    end
+  end
 end
