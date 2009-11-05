@@ -354,22 +354,24 @@ describe QuotientCube::Tree::Base do
       @cube = QuotientCube::Base.build(@table, @dimensions, @measures) do |table, pointers|
         [pointers.length]
       end
-      
-      puts @cube
-      
+            
       @tempfile = Tempfile.new('database')
       @database = TokyoCabinet::BDB.new
       @database.open(@tempfile.path, BDB::OWRITER | BDB::OCREAT)
-      
       @tree = QuotientCube::Tree::Builder.build(@database, @cube)
     end
     
     it "should answer the one query that matters" do
-      QuotientCube::Tree::Query::Base.debug do
-        @tree.find(:all, :conditions => \
-          {'event' => 'time', 'day' => :all}).should == \
-            [{"day"=>"day2", "event"=>"time", "events[count]"=>1.0}]
-      end
+      @tree.find(:all, :conditions => \
+        {'event' => 'time', 'day' => :all}).should == \
+          [{"day"=>"day2", "event"=>"time", "events[count]"=>1.0}]
+    end
+    
+    it "should answer this other hard range query" do
+      @tree.find(:all, :conditions => \
+        {'event' => ['home', 'time']}).should == \
+          [{'event' => 'home', 'events[count]' => 2.0}, 
+          {'event' => 'time', 'events[count]' => 1.0}]
     end
   end
 end

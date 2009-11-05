@@ -42,21 +42,16 @@ module QuotientCube
           
           return nil if dimensions.empty?
           
-          # if tree.dimensions.index(dimensions.last) < position
-            last_name = tree.nodes.children(node_id, dimensions.last).last
-            last_node = tree.nodes.child(node_id, dimensions.last, last_name)
-            
-            if last_node.nil?
-              Base.log("Didn't find any child nodes of the last dimension", "#{dimensions.last} of node #{node_id}")
-              return last_node
-            else
-              Base.log("Recursively searching", "#{last_name}")
-              return search(last_node, dim, value, position)
-            end
-          # else
-          #   Base.log("Terminating search", "#{dimensions.length - 1} is < position")
-          #   return nil
-          # end
+          last_name = tree.nodes.children(node_id, dimensions.last).last
+          last_node = tree.nodes.child(node_id, dimensions.last, last_name)
+          
+          if last_node.nil?
+            Base.log("Didn't find any child nodes of the last dimension", "#{dimensions.last} of node #{node_id}")
+            return last_node
+          else
+            Base.log("Recursively searching", "#{last_name}")
+            return search(last_node, dim, value, position)
+          end
         end
         
         #
@@ -79,7 +74,7 @@ module QuotientCube
             
             dimensions = order(tree.nodes.dimensions(node_id))
             
-            puts "node #{node_id} has dimensions #{dimensions.inspect}"
+            Base.log("node #{node_id} has dimensions #{dimensions.inspect}")
             
             if dimensions.nil?
               Base.log("Didn't find any dimension from #{node_id}")

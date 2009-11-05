@@ -28,20 +28,17 @@ describe QuotientCube::Tree::Query::Point do
       @tempfile = Tempfile.new('database')
       @database = TokyoCabinet::BDB.new
       @database.open(@tempfile.path, BDB::OWRITER | BDB::OCREAT)
-      
-      QuotientCube::Tree::Builder.debug do
-        @tree = QuotientCube::Tree::Builder.build(@database, @cube, :prefix => 'prefix')
-      end
+      @tree = QuotientCube::Tree::Builder.build(@database, @cube, :prefix => 'prefix')
     end
     
     after(:each) do
       @database.close
     end
-    #   
-    # it "should answer with empty conditions" do
-    #   answer = QuotientCube::Tree::Query::Point.new(@tree, {}, ['sales']).process
-    #   answer.should == {'sales' => 9}
-    # end
+      
+    it "should answer with empty conditions" do
+      answer = QuotientCube::Tree::Query::Point.new(@tree, {}, ['sales']).process
+      answer.should == {'sales' => 9}
+    end
     
     it "should answer a variety of conditions" do
       QuotientCube::Tree::Query::Point.new(
@@ -60,11 +57,9 @@ describe QuotientCube::Tree::Query::Point do
         @tree, {'product' => 'P2'}, ['sales']
       ).process.should == {'sales' => 12}
       
-      QuotientCube::Tree::Query::Base.debug do
       QuotientCube::Tree::Query::Point.new(
         @tree, {'store' => 'S1'}, ['sales']
       ).process.should == {'sales' => 9}
-      end
       
       QuotientCube::Tree::Query::Point.new(
         @tree, {'store' => 'S1', 'product' => 'P1'}, ['sales']
@@ -77,7 +72,7 @@ describe QuotientCube::Tree::Query::Point do
     #   )
     #   
     #   Benchmark.bm do |bench|
-    #     bench.report { 3500.times { query.process } }
+    #     bench.report { 5000.times { query.process } }
     #   end
     # end
   end
