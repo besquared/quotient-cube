@@ -1,2 +1,29 @@
 * Since the quotient cube algorithm requires being able to sort in dictionary order, if you pass in integers as strings certain numbers will be order incorrectly if they are not left padded. Who should take care of this?
 * Fix the problem with cubing dimensions that all have the same value. Instead of making a special set of fixed dimensions we should be able to somehow write the tree out normally so that we can maintain it in place later.
+
+* Optimizations
+
+This can be optimized, a lot of of the time we don't need to build 
+the entire path since the current bound shares a prefix with the last
+bound. We could intersect the shared prefixes and then start from that
+position in the last path that was built. In the example below the shared
+prefix is ["20091027"] so we don't need to look it up in each pass if 
+we just skip it and only build the new ones. The savings will be really
+good for deep trees. even in the example below we get a 25% speedup.
+
+[Builder] Found new upper bound => writing nodes for ["20091027", "*", "*", "NULL"]
+[Builder] Building node => 71 at day labeled 20091027
+[Builder] Building node => 72 at user[source] labeled NULL
+[Builder] Found new upper bound => writing nodes for ["20091027", "*", "event created", "NULL"]
+[Builder] Building node => 71 at day labeled 20091027
+[Builder] Building node => 73 at event[name] labeled event created
+[Builder] Building node => 74 at user[source] labeled NULL
+[Builder] Found new upper bound => writing nodes for ["20091027", "*", "home page view", "NULL"]
+[Builder] Building node => 71 at day labeled 20091027
+[Builder] Building node => 75 at event[name] labeled home page view
+[Builder] Building node => 76 at user[source] labeled NULL
+[Builder] Found new upper bound => writing nodes for ["20091027", 349056, "event created", "NULL"]
+[Builder] Building node => 71 at day labeled 20091027
+[Builder] Building node => 77 at hour labeled 349056
+[Builder] Building node => 78 at event[name] labeled event created
+[Builder] Building node => 79 at user[source] labeled NULL

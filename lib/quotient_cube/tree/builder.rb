@@ -37,10 +37,7 @@ module QuotientCube
           current = cube[index + 1]
           
           if current['upper'] != last['upper']
-            # puts %{
-            #   Found new upper bound, writing 
-            #   nodes for #{current['upper'].inspect}
-            # }.squish
+            Builder.log("Found new upper bound", "writing nodes for #{current['upper'].inspect}")
             
             last_built, last = build_nodes(current['upper'], current), current.dup            
             node_index[current['id']] = {:nodes => last_built, :upper => last['upper']}
@@ -57,19 +54,19 @@ module QuotientCube
             lower = current['lower']
             child = node_index[current['child_id']]
             
-            # puts %{
-            #   Found duplicate upper bound #{current['upper'].inspect}, 
-            #   comparing its lower bound #{current['lower'].inspect} to 
-            #   its child's upper bound #{child[:upper].inspect}
-            # }.squish
+            Builder.log("Found duplicate upper bound", %{
+              #{current['upper'].inspect}, 
+              comparing its lower bound #{current['lower'].inspect} to 
+              its child's upper bound #{child[:upper].inspect}
+            }.squish)
             
             cube.dimensions.each_with_index do |dimension, position|
               if child[:upper][position] == '*' and lower[position] != '*'
                 
-                # puts %{
-                #   Building link from #{child[:nodes].compact.last} to 
+                # Builder.log("Building link", %{
+                #   from #{child[:nodes].compact.last} -> 
                 #   #{last_built[position]} on dimension #{dimension}
-                # }.squish
+                # }.squish)
                 
                 build_link(child[:nodes].compact.last, last_built[position], lower[position], dimension)
                 break
@@ -115,6 +112,7 @@ module QuotientCube
           if bound[index] != '*'
             dimension = tree.nodes.add_dimension(last_node, dimension)
             last_node = tree.nodes.add_child(last_node, dimension, bound[index])
+            Builder.log("Building node", "#{last_node} at #{dimension} labeled #{bound[index]}")
             nodes << last_node
           else
             nodes << nil
@@ -131,6 +129,7 @@ module QuotientCube
       def build_link(source, destination, name, dimension)
         dimension = tree.nodes.add_dimension(source, dimension)
         linked = tree.nodes.add_child(source, dimension, name, destination)
+        Builder.log("Building link", "#{source} to #{destination} at #{dimension} labeled #{name}")
       end
       
       def prefix
@@ -139,6 +138,26 @@ module QuotientCube
       
       def meta_key(property)
         "#{prefix}#{property}"
+      end
+      
+      class << self
+        def build(database, cube, options = {})
+          new(database, cube, options).build
+        end
+        
+        def debug
+          @debugging = true
+          yield
+          @debugging = false
+        end
+        
+        def debugging?
+          @debugging
+        end
+        
+        def log(title, msg)
+          puts "[Builder] #{title} => #{msg}" if debugging?
+        end
       end
     end
   end

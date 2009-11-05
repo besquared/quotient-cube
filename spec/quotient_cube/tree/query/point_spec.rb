@@ -50,7 +50,7 @@ describe QuotientCube::Tree::Query::Point do
       QuotientCube::Tree::Query::Point.new(
         @tree, {'store' => 'S2', 'season' => 'f'}, ['sales']
       ).process.should == {'sales' => 9}
-      
+    
       QuotientCube::Tree::Query::Point.new(
         @tree, {'product' => 'P1'}, ['sales']
       ).process.should == {'sales' => 7.5}

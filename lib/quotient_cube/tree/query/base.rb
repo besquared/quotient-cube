@@ -22,8 +22,8 @@ module QuotientCube
         #  it should move to its last child and try and find a child there
         #  with that label
         #
-        def search(node_id, dim, value, position)
-          Base.log("Entered search", "from node #{node_id}, looking for #{value} in #{dim} at position < #{position}")
+        def search(node_id, dim, value, position, depth = 0)
+          Base.log("Entered search", "from node #{node_id}, looking for #{value} in #{dim} at position #{position}")
           
           dimension = tree.nodes.dimension(node_id, dim)
           
@@ -31,38 +31,43 @@ module QuotientCube
             child = tree.nodes.child(node_id, dimension, value)
             
             if child
-              Base.log("Found dimension #{dimension} with #{value}", "from node #{node_id}")
+              Base.log("Found dimension with child", "#{child}:#{value} at #{dimension}")
             else
-              Base.log("Found dimension #{dimension} without #{value}", "from node #{node_id}")
+              Base.log("Found dimension without child", "#{value} at #{dimension}")
             end
             
             return child
           else
             Base.log("Didn't find an edge", "#{dim} from node #{node_id}")
             
-            last_dimension = last_node_dimension(node_id)
+            # to do this properly we need to know what dimension
+            #  we're on, the position that is passed in is the position
+            #  we expect our value to be at, we don't know how deep
+            #  we are right now but we need to know that for this
+            Base.log("Looking for next dimension", "from #{node_id} at depth #{depth}")
+            next_dimension = next_node_dimension(node_id, depth)
             
-            if last_dimension.nil?
-              return last_dimension
+            if next_dimension.nil?
+              return next_dimension
             else
-              last_index = tree.dimensions.index(last_dimension)
+              next_index = tree.dimensions.index(next_dimension)
             end
             
-            Base.log("Looking at the last child of the last dimension", "#{last_dimension} of node #{node_id}")
+            # Base.log("Looking at the last child of the last dimension", "#{last_dimension} of node #{node_id}")
 
-            if last_index < position
-              last_name = tree.nodes.children(node_id, last_dimension).last
-              last_node = tree.nodes.child(node_id, last_dimension, last_name)
-                            
-              if last_node.nil?
-                Base.log("Didn't find any child nodes of the last dimension", "#{last_dimension} of node #{node_id}")
-                return last_node
+            if next_index < position
+              next_name = tree.nodes.children(node_id, next_dimension).last
+              next_node = tree.nodes.child(node_id, next_dimension, next_name)
+              
+              if next_node.nil?
+                Base.log("Didn't find any child nodes of the last dimension", "#{next_dimension} of node #{node_id}")
+                return next_node
               else
-                Base.log("Recursively searching", "#{last_name}")
-                return search(last_node, dim, value, position)
+                Base.log("Recursively searching", "#{next_name}")
+                return search(next_node, dim, value, position, depth + 1)
               end
             else
-              Base.log("Terminating search", "The index #{last_index} of the last dimension of #{node_id}, #{last_dimension}, wasn't less than search position #{position}, returning nil")
+              Base.log("Terminating search", "The index #{next_index} of the next dimension of #{node_id}, #{next_dimension}, wasn't less than search position #{position}, returning nil")
               return nil
             end
           end
@@ -130,6 +135,19 @@ module QuotientCube
             end
             
             return nil
+          end
+        end
+        
+        def next_node_dimension(node_id, depth)
+          dimensions = tree.nodes.dimensions(node_id)
+          if dimensions.empty?
+            return nil
+          else
+            if depth >= dimensions.length
+              return dimensions.last
+            else
+              return dimensions[depth + 1]
+            end
           end
         end
         
