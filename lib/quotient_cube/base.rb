@@ -31,23 +31,9 @@ module QuotientCube
     end
   
     def build(&block)
-      # collapse
       cell = Array.new(dimensions.length).fill('*')
       dfs(cell, (0..table.data.length - 1).to_a, 0, -1, &block)
       self.sort(['upper', 'id'])
-    end
-    
-    #
-    # Finds and records fixed value dimensions and
-    #  removes them from the list of aggregated dimensions
-    #    
-    def collapse
-      values.each do |dimension, values|
-        if values.length == 1
-          @fixed[dimension] = values.first
-          @dimensions.delete(dimension)
-        end
-      end
     end
     
     #

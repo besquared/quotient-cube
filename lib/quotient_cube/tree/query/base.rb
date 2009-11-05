@@ -19,48 +19,44 @@ module QuotientCube
         # Recursive search through one route of the tree
         #
         # Here if it doesn't find a child in the dimension with the label
-        #  it should move to its last child and try and find a child there
+        #  we should move to its last dimension and try and find a child there
         #  with that label
         #
         def search(node_id, dim, value, position)
           Base.log("Entered search", "from node #{node_id}, looking for #{value} in #{dim} at position #{position}")
-          
-          dimension = tree.nodes.dimension(node_id, dim)
-          
-          if dimension
-            child = tree.nodes.child(node_id, dimension, value)
             
-            if child
-              Base.log("Found dimension with child", "#{child}:#{value} at #{dimension}")
+          dimensions = order(tree.nodes.dimensions(node_id))
+          
+          # if node has a child or link pointing 
+          #  to dim labeled value return it
+          if dimensions.include?(dim)
+            if child = tree.nodes.child(node_id, dim, value)
+              Base.log("Found dimension with child", "#{child}:#{value} at #{dim}")
+              return child
             else
-              Base.log("Found dimension without child", "#{value} at #{dimension}")
+              Base.log("Found dimension without child", "#{value} at #{dim}")
             end
-            
-            return child
           else
             Base.log("Didn't find an edge", "#{dim} from node #{node_id}")
-            
-            next_dimension = last_node_dimension(node_id)
-            
-            if next_dimension.nil?
-              Base.log("No next dimension", "from node #{node_id}")
-              return next_dimension
-            else
-              Base.log("Found next dimension", "#{next_dimension} of node #{node_id}")
-              next_index = tree.dimensions.index(next_dimension)
-            end
-
-            next_name = tree.nodes.children(node_id, next_dimension).last
-            next_node = tree.nodes.child(node_id, next_dimension, next_name)
-              
-            if next_node.nil?
-              Base.log("Didn't find any child nodes of the last dimension", "#{next_dimension} of node #{node_id}")
-              return next_node
-            else
-              Base.log("Recursively searching", "#{next_name}")
-              return search(next_node, dim, value, position)
-            end
           end
+          
+          return nil if dimensions.empty?
+          
+          # if tree.dimensions.index(dimensions.last) < position
+            last_name = tree.nodes.children(node_id, dimensions.last).last
+            last_node = tree.nodes.child(node_id, dimensions.last, last_name)
+            
+            if last_node.nil?
+              Base.log("Didn't find any child nodes of the last dimension", "#{dimensions.last} of node #{node_id}")
+              return last_node
+            else
+              Base.log("Recursively searching", "#{last_name}")
+              return search(last_node, dim, value, position)
+            end
+          # else
+          #   Base.log("Terminating search", "#{dimensions.length - 1} is < position")
+          #   return nil
+          # end
         end
         
         #
@@ -70,9 +66,8 @@ module QuotientCube
         def search_measures(node_id, measures)
           Base.log("Entered search measures", "#{node_id}, #{measures}")
           
-          node_measures = tree.nodes.measures(node_id)
-          if node_measures.any?
-            Base.log("Found measures", "#{node_id}")
+          if tree.nodes.measures(node_id).any?
+            Base.log("Found measures in #{node_id}")
             
             values = {}
             measures.each do |selected|
@@ -80,21 +75,23 @@ module QuotientCube
             end
             return values
           else
-            Base.log("Didn't find any measures", "#{node_id}")
+            Base.log("Didn't find any measures in #{node_id}")
             
-            last_dimension = last_node_dimension(node_id)
+            dimensions = order(tree.nodes.dimensions(node_id))
             
-            if last_dimension.nil?
-              Base.log("Didn't find anymore dimensions", "#{node_id}")
-              return last_dimension
+            puts "node #{node_id} has dimensions #{dimensions.inspect}"
+            
+            if dimensions.nil?
+              Base.log("Didn't find any dimension from #{node_id}")
+              return nil
             else
-              next_name = tree.nodes.children(node_id, last_dimension).last
-              next_node = tree.nodes.child(node_id, last_dimension, next_name)
+              next_name = tree.nodes.children(node_id, dimensions.last).last
+              next_node = tree.nodes.child(node_id, dimensions.last, next_name)
           
               if next_node.nil?
                 return next_node
               else
-                Base.log("Recursing to search for measures", "#{next_node}, #{measures}")
+                Base.log("Recursing to search for measures in #{next_node}")
                 return search_measures(next_node, measures)
               end
             end
@@ -114,33 +111,10 @@ module QuotientCube
           return -1
         end
         
-        def last_node_dimension(node_id)
-          if tree.nodes.dimensions(node_id).empty?
-            return nil
-          else
-            tree.dimensions.reverse.each do |dimension|
-              if dimension = tree.nodes.dimension(node_id, dimension)
-                return dimension
-              end
-            end
-            
-            return nil
-          end
+        def order(dimensions)
+          tree.dimensions & dimensions
         end
-        
-        def next_node_dimension(node_id, depth)
-          dimensions = tree.nodes.dimensions(node_id)
-          if dimensions.empty?
-            return nil
-          else
-            if depth >= dimensions.length
-              return dimensions.last
-            else
-              return dimensions[depth + 1]
-            end
-          end
-        end
-        
+                
         class << self
           def debug
             @debugging = true
@@ -155,8 +129,12 @@ module QuotientCube
             @debugging
           end
           
-          def log(title, msg)
-            puts "[Base Query] #{title} => #{msg}" if debugging?
+          def log(title, msg = nil)
+            if msg
+              puts "[Base Query] #{title} => #{msg}" if debugging?
+            else
+              puts "[Base Query] #{title}" if debugging?
+            end
           end
         end
       end

@@ -42,11 +42,7 @@ describe QuotientCube::Tree::Query::Base do
     it "should get the last specified position" do
       @query.last_specified_position.should == 2
     end
-  
-    it "should get the last dimension for a node" do
-      @query.last_node_dimension(@tree.nodes.root).should == 'season'
-    end
-  
+    
     it "should return nil if a value doesn't exist for a dimension" do
       node = @query.search(@tree.nodes.root, 'store', 'S3', 0)
       node.should == nil

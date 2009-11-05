@@ -83,15 +83,15 @@ describe QuotientCube::Tree::Query::Range do
       ]
     end
     
-    # it "should benchmark" do
-    #   query = QuotientCube::Tree::Query::Range.new(@tree, {
-    #     'store' => ['S1', 'S2', 'S3'], 
-    #     'product' => ['P1', 'P3'], 'season' => 'f'
-    #   }, ['sales'])
-    #   
-    #   Benchmark.bm do |bench|
-    #     bench.report { 2500.times { query.process } }
-    #   end
-    # end
+    it "should benchmark" do
+      query = QuotientCube::Tree::Query::Range.new(@tree, {
+        'store' => ['S1', 'S2', 'S3'], 
+        'product' => ['P1', 'P3'], 'season' => 'f'
+      }, ['sales'])
+      
+      Benchmark.bm do |bench|
+        bench.report { 1000.times { query.process } }
+      end
+    end
   end
 end

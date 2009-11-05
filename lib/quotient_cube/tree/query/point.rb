@@ -12,11 +12,8 @@ module QuotientCube
               node_id = search(node_id, dimension, value, index)
             end
             
-            if node_id.nil?
-              break
-            else
-              Point.log("Found node #{node_id}:#{value} at #{dimension}")
-            end
+            break if node_id.nil?
+            Point.log("Found node #{node_id}:#{value} at #{dimension}") unless value.nil?
           end
 
           if node_id.nil?
