@@ -302,29 +302,42 @@ describe QuotientCube::Tree::Base do
     end
   end
   
-  describe "with the events2 data set" do
+  describe "with the 20091104 daily-events-1 data set" do
     before(:each) do
-      base_table = load_fixture('events2')
+      @base_table = load_fixture('20091104-daily-events-1')
       
-      @dimensions = ['day', 'hour', 'event[name]']
-      @measures = ['events[count]']
+      @dimensions = ['day', 'hour', 'event[name]', 'user[source]']
+      @measures = ['events[count]', 'users[count]']
       
-      @cube = QuotientCube::Base.build(base_table, @dimensions, @measures) do |table, pointers|
-        [pointers.length]
+      @cube = QuotientCube::Base.build(@base_table, @dimensions, @measures) do |table, pointers|
+        [pointers.length, pointers.collect{|p| @base_table[p]['user[id]']}.uniq]
       end
       
       @tempfile = Tempfile.new('database')
       @database = TokyoCabinet::BDB.new
       @database.open(@tempfile.path, BDB::OWRITER | BDB::OCREAT)
-
+      
       @tree = QuotientCube::Tree::Builder.new(
                   @database, @cube, :prefix => 'prefix').build
     end
     
-    it "should answer various queries" do
+    after(:each) do
+      @database.close
+    end
+    
+    it "should find the correct events[count]" do
       @tree.find(:all, :conditions => \
-        {'event[name]' => :all, 'day' => :all}).select{|row| 
-          row['event[name]'] == 'timeline page view'}.length.should == 3
+        {'event[name]' => 'timeline page view'}).should == {
+          'users[count]' => 1.0, 'event[name]' => 'timeline page view', 'events[count]' => 5.0
+        }
+    end
+    
+    it "should answer various queries" do
+      QuotientCube::Tree::Query::Base.debug do
+        puts QuotientCube::Tree::Query::Base.debugging?
+        puts @tree.find(:all, :conditions => \
+          {'event[name]' => 'timeline page view', 'day' => :all}).inspect#length.should == 3
+      end
     end
   end
 end

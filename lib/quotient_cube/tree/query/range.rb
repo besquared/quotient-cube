@@ -3,10 +3,11 @@ module QuotientCube
     module Query
       class Range < Base
         def process(node = tree.nodes.root, position = 0, cell = {}, results = [])          
-          # puts "the last specified position is #{last_specified_position}"
+          Range.log("Entering process", "from #{node}, where #{position} > #{last_specified_position}")
+          
           if position > last_specified_position
             if not node.nil?
-              # puts "Found the end of a path, finding measures #{measures.inspect} closest to #{node}"
+              Range.log("Found the end of a path", "finding measures #{measures.inspect} closest to #{node}")
               results << search_measures(node, measures).merge(cell)
             end
         
@@ -63,6 +64,12 @@ module QuotientCube
             return results
           end
         end        
+        
+        class << self
+          def log(title, msg)
+            puts "[Range Query] #{title} => #{msg}" if QuotientCube::Tree::Query::Base.debugging?
+          end
+        end
       end
     end
   end
