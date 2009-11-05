@@ -60,8 +60,7 @@ describe QuotientCube::Tree::Query::Base do
     it "should search a deep route" do
       root = @tree.nodes.root
       node = @tree.nodes.child(root, 'store', 'S2')
-      # acts like a recursion so start from depth 1
-      node = @query.search(node, 'season', 'f', 2, 1)
+      node = @query.search(node, 'season', 'f', 2)
       node.should == '11'
     end
   

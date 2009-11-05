@@ -5,18 +5,16 @@ module QuotientCube
         def process(selected = {})
           node_id = tree.nodes.root
           
-          depth = 0
           tree.dimensions.each_with_index do |dimension, index|
             value = conditions[dimension]
 
             if value != nil and value != '*'
-              node_id = search(node_id, dimension, value, index, depth)
+              node_id = search(node_id, dimension, value, index)
             end
             
             if node_id.nil?
               break
             else
-              depth += 1
               Point.log("Found node #{node_id}:#{value} at #{dimension}")
             end
           end

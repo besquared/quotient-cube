@@ -15,12 +15,10 @@ module QuotientCube
             return results
           end
       
-          # Loop over dimensions until we
-          #  have the next condition that isn't '*'
-          #  if we're at the end, recurse to
-          #  add the measures from the last node
+          # Loop over dimensions until we have the next condition that isn't '*'
+          #  if we're at the end, recurse to add the measures from the last node
           #  we found to the final result set
-      
+        
           values = nil
           dimension = nil
           position.upto(tree.dimensions.length - 1) do |index|
@@ -32,6 +30,7 @@ module QuotientCube
               break
             elsif index == tree.dimensions.length - 1
               # we've run out of possible dimensions
+              Range.log("Search terminating", "we've run out of possible dimensions to keep search")
               process(node, index, cell, results)
           
               return results
@@ -67,7 +66,7 @@ module QuotientCube
         end        
         
         class << self
-          def log(title, msg)
+          def log(title, msg = nil)
             puts "[Range Query] #{title} => #{msg}" if QuotientCube::Tree::Query::Base.debugging?
           end
         end

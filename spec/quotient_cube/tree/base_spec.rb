@@ -311,7 +311,7 @@ describe QuotientCube::Tree::Base do
         row['hour'].to_i >= 349213 and row['hour'].to_i <= 349249 and
         ['timeline page view', 'application page view', 'home page view'].include?(row['event[name]'])
       end
-            
+      
       @base_table = small
       
       @dimensions = ['day', 'hour', 'event[name]', 'user[source]']
@@ -335,16 +335,63 @@ describe QuotientCube::Tree::Base do
     it "should find the correct events[count]" do
       @tree.find(:all, :conditions => \
         {'event[name]' => 'timeline page view'}).should == {
-          'users[count]' => 1.0, 'event[name]' => 'timeline page view', 'events[count]' => 3.0
+          'users[count]' => 1.0, 'event[name]' => \
+            'timeline page view', 'events[count]' => 3.0
         }
     end
     
-    it "should answer various queries" do
+    it "should answer various queries" do      
       QuotientCube::Tree::Query::Base.debug do
         puts @tree.find(:all, :conditions => \
           {'event[name]' => 'timeline page view', 'day' => :all}).inspect#length.should == 3
       end
     end
+  end
+  
+  describe "A smaller version of the daily-1 data set" do
+    before(:each) do
+      @table = Table.new(
+        :column_names => [
+          'day', 'hour', 'event[name]', 'user[source]'
+        ], :data => [
+          ['20091102', '349213', 'home page view', 'direct'],
+          ['20091102', '349213', 'home page view', 'NULL'],
+          ['20091102', '349223', 'application page view', 'NULL'],
+          ['20091104', '349248', 'application page view', 'NULL'],
+          ['20091104', '349249', 'timeline page view', 'NULL']
+        ]
+      )
+      
+      @dimensions = ['day', 'hour', 'event[name]', 'user[source]']
+      @measures = ['events[count]']
+  
+      @cube = QuotientCube::Base.build(@table, @dimensions, @measures) do |table, pointers|
+        [pointers.length]
+      end
+      
+      @tempfile = Tempfile.new('database')
+      @database = TokyoCabinet::BDB.new
+      @database.open(@tempfile.path, BDB::OWRITER | BDB::OCREAT)
+  
+      @tree = QuotientCube::Tree::Builder.build(@database, @cube)
+    end
+  
+    after(:each) do
+      @database.close
+    end
+  
+    it "should find the correct events[count]" do
+      @tree.find(:all, :conditions => \
+        {'event[name]' => 'timeline page view'}).should == {
+          'event[name]' => 'timeline page view', 'events[count]' => 1.0
+        }
+    end
+  
+    it "should answer various queries" do
+      @tree.find(:all, :conditions => \
+        {'event[name]' => 'timeline page view', 'day' => :all}).should == \
+          [{"day"=>"20091104", "event[name]"=>"timeline page view", "events[count]"=>1.0}]
+    end    
   end
   
   describe "with fixed values at dimensions greater than the first" do
@@ -365,22 +412,29 @@ describe QuotientCube::Tree::Base do
       @cube = QuotientCube::Base.build(@table, @dimensions, @measures) do |table, pointers|
         [pointers.length]
       end
-            
+      
       @tempfile = Tempfile.new('database')
       @database = TokyoCabinet::BDB.new
       @database.open(@tempfile.path, BDB::OWRITER | BDB::OCREAT)
       
-      @tree = QuotientCube::Tree::Builder.build(@database, @cube)
+      QuotientCube::Tree::Builder.debug do 
+        @tree = QuotientCube::Tree::Builder.build(@database, @cube)
+      end
     end
     
     after(:each) do
       @database.close
     end
     
-    it "should do some queries" do
+    it "should do some queries" do        
       @tree.find(:all, :conditions => \
         {'event' => 'time', 'day' => :all}).should == \
           [{"day"=>"2", "event"=>"time", "events[count]"=>1.0}]
+
+      @tree.find(:all, :conditions => \
+        {'event' => 'home', 'day' => :all}).should == \
+          [{"day" => "1", "event" => "home", "events[count]" => 1.0},
+            {"day" => "2", "event" => "home", "events[count]" => 1.0}]
     end
   end
 end

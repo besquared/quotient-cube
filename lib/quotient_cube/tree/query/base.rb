@@ -22,7 +22,7 @@ module QuotientCube
         #  it should move to its last child and try and find a child there
         #  with that label
         #
-        def search(node_id, dim, value, position, depth = 0)
+        def search(node_id, dim, value, position)
           Base.log("Entered search", "from node #{node_id}, looking for #{value} in #{dim} at position #{position}")
           
           dimension = tree.nodes.dimension(node_id, dim)
@@ -40,35 +40,25 @@ module QuotientCube
           else
             Base.log("Didn't find an edge", "#{dim} from node #{node_id}")
             
-            # to do this properly we need to know what dimension
-            #  we're on, the position that is passed in is the position
-            #  we expect our value to be at, we don't know how deep
-            #  we are right now but we need to know that for this
-            Base.log("Looking for next dimension", "from #{node_id} at depth #{depth}")
-            next_dimension = next_node_dimension(node_id, depth)
+            next_dimension = last_node_dimension(node_id)
             
             if next_dimension.nil?
+              Base.log("No next dimension", "from node #{node_id}")
               return next_dimension
             else
+              Base.log("Found next dimension", "#{next_dimension} of node #{node_id}")
               next_index = tree.dimensions.index(next_dimension)
             end
-            
-            # Base.log("Looking at the last child of the last dimension", "#{last_dimension} of node #{node_id}")
 
-            if next_index < position
-              next_name = tree.nodes.children(node_id, next_dimension).last
-              next_node = tree.nodes.child(node_id, next_dimension, next_name)
+            next_name = tree.nodes.children(node_id, next_dimension).last
+            next_node = tree.nodes.child(node_id, next_dimension, next_name)
               
-              if next_node.nil?
-                Base.log("Didn't find any child nodes of the last dimension", "#{next_dimension} of node #{node_id}")
-                return next_node
-              else
-                Base.log("Recursively searching", "#{next_name}")
-                return search(next_node, dim, value, position, depth + 1)
-              end
+            if next_node.nil?
+              Base.log("Didn't find any child nodes of the last dimension", "#{next_dimension} of node #{node_id}")
+              return next_node
             else
-              Base.log("Terminating search", "The index #{next_index} of the next dimension of #{node_id}, #{next_dimension}, wasn't less than search position #{position}, returning nil")
-              return nil
+              Base.log("Recursively searching", "#{next_name}")
+              return search(next_node, dim, value, position)
             end
           end
         end
