@@ -30,7 +30,7 @@ module QuotientCube
               break
             elsif index == tree.dimensions.length - 1
               # we've run out of possible dimensions
-              Range.log("Search terminating", "we've run out of possible dimensions to keep search")
+              Range.log("Search terminating", "we've run out of possible dimensions to search")
               process(node, index, cell, results)
           
               return results

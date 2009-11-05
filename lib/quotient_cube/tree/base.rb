@@ -37,38 +37,11 @@ module QuotientCube
         query_type = :point
         conditions.each do |dimension, value|
           if value.is_a?(Array)
-            if fixed[dimension]
-              if value.include?(fixed[dimension])
-                conditions.delete(dimension)
-                selected[dimension] = fixed[dimension]
-              else
-                return nil
-              end
-            else
-              query_type = :range
-            end
+            query_type = :range
           elsif value == :all
             # Expand conditions
             conditions[dimension] = values(dimension)
-            
-            if fixed[dimension]
-              if conditions[dimension].include?(fixed[dimension])
-                conditions.delete(dimension)
-                selected[dimension] = fixed[dimension]
-              else
-                return nil
-              end
-            else
-              query_type = :range
-            end
-          else
-            if fixed[dimension]
-              if value == fixed[dimension]
-                conditions.delete(dimension)
-              else
-                return nil
-              end
-            end
+            query_type = :range
           end
         end
         
@@ -97,22 +70,7 @@ module QuotientCube
       def dimensions
         @dimensions ||= meta_query('dimensions') || []
       end
-      
-      def fixed
-        if not @fixed
-          @fixed = {}
-          fixed = meta_query('fixed')
-          if not fixed.nil?
-            fixed.each do |pair|
-              pair = pair.split(':')
-              @fixed[pair.first] = pair.last
-            end
-          end
-        end
-        
-        @fixed
-      end
-      
+            
       def measures
         @measures ||= meta_query('measures') || []
       end
@@ -128,13 +86,6 @@ module QuotientCube
       
       def meta_key(property)
         "#{prefix}#{property}"
-      end
-      
-    protected
-      def expand_condition(dimension, values)
-      end
-      
-      def expand_measure(measure)
       end
     end
   end
