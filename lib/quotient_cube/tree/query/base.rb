@@ -144,8 +144,11 @@ module QuotientCube
         class << self
           def debug
             @debugging = true
-            yield
-            @debugging = false
+            begin
+              yield
+            ensure
+              @debugging = false
+            end
           end
           
           def debugging?

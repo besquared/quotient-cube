@@ -31,7 +31,7 @@ module QuotientCube
     end
   
     def build(&block)
-      collapse
+      # collapse
       cell = Array.new(dimensions.length).fill('*')
       dfs(cell, (0..table.data.length - 1).to_a, 0, -1, &block)
       self.sort(['upper', 'id'])

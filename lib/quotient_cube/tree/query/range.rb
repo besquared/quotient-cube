@@ -37,26 +37,26 @@ module QuotientCube
             end
           end
       
-          # puts "Searching through node #{node} for #{values.inspect}"
+          Range.log("Searching through node #{node} for values #{values.inspect}")
       
           saved_node = node
           if not values.is_a?(Array)
-            # puts "Searching for point value #{values}"
+            Range.log("Searching for point value", "#{values}")
             node = search(node, dimension, values, position)
         
             if node.nil?
-              # puts "Didn't find an edge labeled #{values} off of #{saved_node}, pruning branch"
+              Range.log("Didn't find an edge labeled #{values} off of #{saved_node}", "pruning branch")
             else
-              # puts "Found an edge labeled #{values} from #{node}, recursing on #{dimension} => #{values}"
+              Range.log("Found an edge labeled #{values} from #{node}", "recursing on #{dimension} => #{values}")
               process(node, position + 1, cell.merge(dimension => values), results)
             end
           else
             values.each do |value|
               node = search(saved_node, dimension, value, position)          
               if node.nil?
-                # puts "Didn't find an edge labeled #{value} off of #{saved_node}, pruning branch"
+                Range.log("Didn't find an edge labeled #{value} off of #{saved_node}", "pruning branch")
               else
-                # puts "Found an edge labeled #{value}, recursing on #{dimension} => #{value}"
+                Range.log("Found an edge labeled #{value} off of #{saved_node}", "recursing on #{dimension} => #{value}")
                 process(node, position + 1, cell.merge(dimension => value), results)
               end
             end

@@ -216,11 +216,12 @@ describe QuotientCube::Tree::Builder do
     
     it "should build meta" do
       @builder.build_meta
-      @database.getlist('prefix:dimensions').should == ['user[source]', 'user[age]']
-      @database.getlist('prefix:fixed').should == ['hour:340023', 'event[name]:signup']
+      @database.getlist('prefix:dimensions').should == ['hour', 'user[source]', 'user[age]', 'event[name]']
       @database.getlist('prefix:measures').should == ['events[count]', 'events[percentage]', 'users[count]', 'users[percentage]']
+      @database.getlist('prefix:[hour]').should == ['340023']
       @database.getlist('prefix:[user[source]]').should == ['blog', 'twitter']
       @database.getlist('prefix:[user[age]]').should == ['14', 'NULL']
+      @database.getlist('prefix:[event[name]]').should == ['signup']
     end
   end
 end

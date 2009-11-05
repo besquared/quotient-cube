@@ -1,0 +1,60 @@
+--- !ruby/object:AutobotsTransform::Table 
+column_indexes: 
+  user[source]: 5
+  measures: 6
+  hour: 1
+  day: 0
+  event[occurred_at]: 3
+  event[name]: 2
+  user[id]: 4
+column_names: 
+- day
+- hour
+- event[name]
+- event[occurred_at]
+- user[id]
+- user[source]
+- measures
+data: 
+- - "20091102"
+  - 349213
+  - home page view
+  - "1257167502"
+  - 127.0.0.1
+  - Direct
+  - "NULL"
+- - "20091102"
+  - 349213
+  - home page view
+  - "1257167117"
+  - 127.0.0.1
+  - "NULL"
+  - "NULL"
+- - "20091102"
+  - 349214
+  - home page view
+  - "1257172057"
+  - 212.117.175.37
+  - "NULL"
+  - "NULL"
+- - "20091104"
+  - 349248
+  - application page view
+  - "1257295678"
+  - "1"
+  - "NULL"
+  - measures
+- - "20091104"
+  - 349249
+  - application page view
+  - "1257298005"
+  - "1"
+  - "NULL"
+  - measures
+- - "20091104"
+  - 349249
+  - timeline page view
+  - "1257297946"
+  - "1"
+  - "NULL"
+  - measures

@@ -30,28 +30,31 @@ describe QuotientCube::Tree::Base do
       @tempfile = Tempfile.new('database')
       @database = TokyoCabinet::BDB.new
       @database.open(@tempfile.path, BDB::OWRITER | BDB::OCREAT)
-  
-      @tree = QuotientCube::Tree::Builder.new(
-                  @database, @cube, :prefix => 'prefix').build
+      
+      puts @cube
+      
+      QuotientCube::Tree::Builder.debug do
+        @tree = QuotientCube::Tree::Builder.build(@database, @cube, :prefix => 'prefix')
+      end
     end
     
     after(:each) do
       @database.close
     end
     
-    it "should get a list of dimensions" do
-      @tree.dimensions.should == ['store', 'product', 'season']
-    end
-    
-    it "should get a list of measures" do
-      @tree.measures.should == ['sales[sum]', 'sales[avg]']
-    end
-    
-    it "should get a list of values" do
-      @tree.values('store').should == ['S1', 'S2']
-      @tree.values('product').should == ['P1', 'P2']
-      @tree.values('season').should == ['f', 's']
-    end
+    # it "should get a list of dimensions" do
+    #   @tree.dimensions.should == ['store', 'product', 'season']
+    # end
+    # 
+    # it "should get a list of measures" do
+    #   @tree.measures.should == ['sales[sum]', 'sales[avg]']
+    # end
+    # 
+    # it "should get a list of values" do
+    #   @tree.values('store').should == ['S1', 'S2']
+    #   @tree.values('product').should == ['P1', 'P2']
+    #   @tree.values('season').should == ['f', 's']
+    # end
     
     it "should answer point and range queries" do
       @tree.find(:all).should == {'sales[sum]' => 27.0, 'sales[avg]' => 9.0}
@@ -66,11 +69,13 @@ describe QuotientCube::Tree::Base do
         :conditions => {'product' => 'P1', 'season' => 'f'}).should == \
           {'product' => 'P1', 'season' => 'f', 'sales[avg]' => 9.0}
       
-      @tree.find('sales[avg]',
-        :conditions => {'product' => ['P1', 'P2', 'P3']}).should == [
-          {'product' => 'P1', 'sales[avg]' => 7.5}, 
-          {'product' => 'P2', 'sales[avg]' => 12.0}
-        ]
+      QuotientCube::Tree::Query::Base.debug do
+        @tree.find('sales[avg]',
+          :conditions => {'product' => ['P1', 'P2', 'P3']}).should == [
+            {'product' => 'P1', 'sales[avg]' => 7.5}, 
+            {'product' => 'P2', 'sales[avg]' => 12.0}
+          ]
+      end
       
       @tree.find(:all, :conditions => {'product' => :all}).should ==   [
         {'product' => 'P1', 'sales[avg]' => 7.5, 'sales[sum]' => 15.0}, 
@@ -117,9 +122,8 @@ describe QuotientCube::Tree::Base do
       @tempfile = Tempfile.new('database')
       @database = TokyoCabinet::BDB.new
       @database.open(@tempfile.path, BDB::OWRITER | BDB::OCREAT)
-  
-      @tree = QuotientCube::Tree::Builder.new(
-                  @database, @cube, :prefix => 'prefix').build
+      
+      @tree = QuotientCube::Tree::Builder.build(@database, @cube)
     end
     
     after(:each) do
@@ -127,20 +131,19 @@ describe QuotientCube::Tree::Base do
     end
     
     it "should have the correct meta data" do
-      @tree.dimensions.should == ['user[source]', 'user[age]']
+      @tree.dimensions.should == ['hour', 'user[source]', 'user[age]', 'event[name]']
       @tree.measures.should == ['events[count]', 'events[percentage]', 'users[count]', 'users[percentage]']
       @tree.values('hour').should == ['340023']
       @tree.values('user[source]').should == ['blog', 'twitter']
       @tree.values('user[age]').should == ['14', 'NULL']
       @tree.values('event[name]').should == ['signup']
-      @tree.fixed.should == {'hour' => '340023', 'event[name]' => 'signup'}
     end
   
     it "should answer various queries" do
-      @tree.find(:all, :conditions => {'hour' => ['3400231']}).should == nil
+      @tree.find(:all, :conditions => {'hour' => ['3400231']}).should == []
       @tree.find(:all, :conditions => {'hour' => '3400231'}).should == nil
       @tree.find(:all, :conditions => {'event[name]' => 'fake'}).should == nil
-      @tree.find(:all, :conditions => {'event[name]' => ['fake1', 'fake2']}).should == nil
+      @tree.find(:all, :conditions => {'event[name]' => ['fake1', 'fake2']}).should == []
       
       @tree.find(:all, :conditions => {'hour' => '340023'}).should == {
         'hour' => '340023',
@@ -148,35 +151,40 @@ describe QuotientCube::Tree::Base do
         'users[count]' => 3, 'users[percentage]' => 100.0
       }
       
-      @tree.find(:all, :conditions => {'hour' => ['340023']}).should == {
-        'hour' => '340023',
-        'events[count]' => 3, 'events[percentage]' => 100.0,
-        'users[count]' => 3, 'users[percentage]' => 100.0
-      }
+      @tree.find(:all, :conditions => \
+        {'hour' => ['340023']}).should == [{
+          'hour' => '340023','events[count]' => 3, 
+          'events[percentage]' => 100.0,'users[count]' => 3, 
+          'users[percentage]' => 100.0
+      }]
       
-      @tree.find(:all, :conditions => {'event[name]' => 'signup'}).should == {
-        'event[name]' => 'signup',
-        'events[count]' => 3, 'events[percentage]' => 100.0,
-        'users[count]' => 3, 'users[percentage]' => 100.0
-      }
+      @tree.find(:all, :conditions => \
+        {'event[name]' => 'signup'}).should == {
+          'event[name]' => 'signup', 'events[count]' => 3, 
+          'events[percentage]' => 100.0, 'users[count]' => 3, 
+          'users[percentage]' => 100.0
+        }
       
-      @tree.find(:all, :conditions => {'event[name]' => ['signup']}).should == {
-        'event[name]' => 'signup',
-        'events[count]' => 3, 'events[percentage]' => 100.0,
-        'users[count]' => 3, 'users[percentage]' => 100.0
-      }
+      @tree.find(:all, :conditions => \
+        {'event[name]' => ['signup']}).should == [{
+          'event[name]' => 'signup',
+          'events[count]' => 3, 'events[percentage]' => 100.0,
+          'users[count]' => 3, 'users[percentage]' => 100.0
+        }]
       
-      @tree.find(:all, :conditions => {'hour' => :all}).should == {
-        'hour' => '340023',
-        'events[count]' => 3, 'events[percentage]' => 100.0,
-        'users[count]' => 3, 'users[percentage]' => 100.0
-      }
+      @tree.find(:all, :conditions => \
+        {'hour' => :all}).should == [{
+          'hour' => '340023', 'events[count]' => 3, 
+          'events[percentage]' => 100.0, 'users[count]' => 3, 
+          'users[percentage]' => 100.0
+        }]
       
-      @tree.find(:all, :conditions => {'event[name]' => :all}).should == {
-        'event[name]' => 'signup',
-        'events[count]' => 3, 'events[percentage]' => 100.0,
-        'users[count]' => 3, 'users[percentage]' => 100.0
-      }
+      @tree.find(:all, :conditions => \
+        {'event[name]' => :all}).should == [{
+          'event[name]' => 'signup', 'events[count]' => 3, 
+          'events[percentage]' => 100.0, 'users[count]' => 3, 
+          'users[percentage]' => 100.0
+        }]
       
       @tree.find('events[count]', :conditions => {
         'user[age]' => '14', 'event[name]' => 'signup'
@@ -245,21 +253,12 @@ describe QuotientCube::Tree::Base do
       @tempfile = Tempfile.new('database')
       @database = TokyoCabinet::BDB.new
       @database.open(@tempfile.path, BDB::OWRITER | BDB::OCREAT)
-  
-      @tree = QuotientCube::Tree::Builder.new(
-                  @database, @cube, :prefix => 'prefix').build
+      
+      @tree = QuotientCube::Tree::Builder.build(@database, @cube, :prefix => 'prefix')
     end
   
     after(:each) do
       @database.close
-    end
-    
-    it "should collapse fixed dimensions" do
-      @tree.fixed.should == {
-        'hour' => '340023', 'user[source]' => 'blog', 
-        'user[age]' => 'NULL', 'event[name]' => 'signup'}
-      
-      @tree.dimensions.should == []
     end
     
     it "should answer a variety of queries" do
@@ -268,8 +267,8 @@ describe QuotientCube::Tree::Base do
         'users[count]' => 1, 'users[percentage]' => 100.0
       }
       
-      @tree.find('events[count]', 
-        :conditions => {'hour' => :all}).should == {'hour' => '340023', 'events[count]' => 1}
+      @tree.find('events[count]', :conditions => \
+        {'hour' => :all}).should == [{'hour' => '340023', 'events[count]' => 1.0}]
       
       @tree.find('events[count]', :conditions => {'hour' => 'fake'}).should == nil
     end
@@ -303,17 +302,8 @@ describe QuotientCube::Tree::Base do
   
   describe "with the 20091104 daily-events-1 data set" do
     before(:each) do
-      @base_table = load_fixture('20091104-daily-events-1')
-      
-      # craziest edge case ever
-      small = @base_table.where do |row| 
-        ['20091102', '20091104'].include?(row['day']) and 
-        row['hour'].to_i >= 349213 and row['hour'].to_i <= 349249 and
-        ['timeline page view', 'application page view', 'home page view'].include?(row['event[name]'])
-      end
-      
-      @base_table = small
-      
+      @base_table = load_fixture('daily-event-1-compact')
+            
       @dimensions = ['day', 'hour', 'event[name]', 'user[source]']
       @measures = ['events[count]', 'users[count]']
       
@@ -336,64 +326,18 @@ describe QuotientCube::Tree::Base do
       @tree.find(:all, :conditions => \
         {'event[name]' => 'timeline page view'}).should == {
           'users[count]' => 1.0, 'event[name]' => \
-            'timeline page view', 'events[count]' => 3.0
+            'timeline page view', 'events[count]' => 1.0
         }
     end
     
-    it "should answer various queries" do      
-      QuotientCube::Tree::Query::Base.debug do
-        puts @tree.find(:all, :conditions => \
-          {'event[name]' => 'timeline page view', 'day' => :all}).inspect#length.should == 3
-      end
+    it "should answer a daily query" do    
+      # QuotientCube::Tree::Query::Base.debug do
+      #   puts @tree.find(:all, :conditions => \
+      #     {'event[name]' => 'timeline page view', 'day' => :all}).inspect#length.should == 3
+      # end
     end
   end
-  
-  describe "A smaller version of the daily-1 data set" do
-    before(:each) do
-      @table = Table.new(
-        :column_names => [
-          'day', 'hour', 'event[name]', 'user[source]'
-        ], :data => [
-          ['20091102', '349213', 'home page view', 'direct'],
-          ['20091102', '349213', 'home page view', 'NULL'],
-          ['20091102', '349223', 'application page view', 'NULL'],
-          ['20091104', '349248', 'application page view', 'NULL'],
-          ['20091104', '349249', 'timeline page view', 'NULL']
-        ]
-      )
-      
-      @dimensions = ['day', 'hour', 'event[name]', 'user[source]']
-      @measures = ['events[count]']
-  
-      @cube = QuotientCube::Base.build(@table, @dimensions, @measures) do |table, pointers|
-        [pointers.length]
-      end
-      
-      @tempfile = Tempfile.new('database')
-      @database = TokyoCabinet::BDB.new
-      @database.open(@tempfile.path, BDB::OWRITER | BDB::OCREAT)
-  
-      @tree = QuotientCube::Tree::Builder.build(@database, @cube)
-    end
-  
-    after(:each) do
-      @database.close
-    end
-  
-    it "should find the correct events[count]" do
-      @tree.find(:all, :conditions => \
-        {'event[name]' => 'timeline page view'}).should == {
-          'event[name]' => 'timeline page view', 'events[count]' => 1.0
-        }
-    end
-  
-    it "should answer various queries" do
-      @tree.find(:all, :conditions => \
-        {'event[name]' => 'timeline page view', 'day' => :all}).should == \
-          [{"day"=>"20091104", "event[name]"=>"timeline page view", "events[count]"=>1.0}]
-    end    
-  end
-  
+    
   describe "with fixed values at dimensions greater than the first" do
     before(:each) do
       @table = Table.new(
@@ -417,9 +361,7 @@ describe QuotientCube::Tree::Base do
       @database = TokyoCabinet::BDB.new
       @database.open(@tempfile.path, BDB::OWRITER | BDB::OCREAT)
       
-      QuotientCube::Tree::Builder.debug do 
-        @tree = QuotientCube::Tree::Builder.build(@database, @cube)
-      end
+      @tree = QuotientCube::Tree::Builder.build(@database, @cube)
     end
     
     after(:each) do
@@ -435,6 +377,49 @@ describe QuotientCube::Tree::Base do
         {'event' => 'home', 'day' => :all}).should == \
           [{"day" => "1", "event" => "home", "events[count]" => 1.0},
             {"day" => "2", "event" => "home", "events[count]" => 1.0}]
+    end
+  end
+  
+  describe "The hardest bug to find ever" do
+    before(:each) do
+      @table = Table.new(
+        :column_names => [
+          'day', 'hour', 'event', 'source'
+        ], :data => [
+          ['day1', 'hour1', 'app', 'direct'],
+          ['day1', 'hour1', 'app', 'NULL'],
+          ['day2', 'hour3', 'home', 'NULL'],
+          ['day2', 'hour4', 'home', 'NULL'],
+          ['day2', 'hour4', 'time', 'NULL']
+        ]
+      )
+      
+      @dimensions = ['day', 'hour', 'event', 'source']
+      @measures = ['events[count]']
+      
+      @cube = QuotientCube::Base.build(@table, @dimensions, @measures) do |table, pointers|
+        [pointers.length]
+      end
+      
+      # puts @cube
+      
+      @tempfile = Tempfile.new('database')
+      @database = TokyoCabinet::BDB.new
+      @database.open(@tempfile.path, BDB::OWRITER | BDB::OCREAT)
+      
+      # QuotientCube::Tree::Builder.debug do
+        @tree = QuotientCube::Tree::Builder.build(@database, @cube)
+      # end
+      
+      # puts @tree.nodes.children('8', 'event')
+    end
+    
+    it "should answer the one query that matters" do
+      # QuotientCube::Tree::Query::Base.debug do      
+        @tree.find(:all, :conditions => \
+          {'event' => 'time', 'day' => :all}).should == \
+            [{"day"=>"day2", "event"=>"time", "events[count]"=>1.0}]
+      # end
     end
   end
 end

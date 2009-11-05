@@ -69,15 +69,13 @@ describe QuotientCube::Tree::Query::Point do
     end
     
     # it "should benchmark" do
-    #   puts Benchmark.measure {
-    #     query = QuotientCube::Tree::Query::Point.new(
-    #       @tree, {'store' => 'S2', 'season' => 's'}, ['sales']
-    #     )
-    #     
-    #     7000.times {
-    #       query.process
-    #     }
-    #   }
+    #   query = QuotientCube::Tree::Query::Point.new(
+    #     @tree, {'store' => 'S2', 'season' => 's'}, ['sales']
+    #   )
+    #   
+    #   Benchmark.bm do |bench|
+    #     bench.report { 6000.times { query.process } }
+    #   end
     # end
   end
   

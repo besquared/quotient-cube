@@ -22,13 +22,15 @@ module QuotientCube
         
         build_meta
         build_root
+                
+        # if we're all * the node index should point us to real root
+        #  if we aren't all stars the node index should point us to
+        #  the last thing built, I see now, if there were no nodes
+        #  built we need to use the root node (it was the last built)
         
-        # this isn't right, it thinks we already
-        #  built the upper of the first row, but we
-        #  never did, we need to do that
-      
-        last = cube.first
-        last_built = [tree.nodes.root]
+        last = cube.first.dup
+        last_built = build_nodes(last['upper'], last)
+        last_built = [tree.nodes.root] if last_built.compact.empty?
         node_index[0] = {:nodes => last_built, :upper => last['upper']}
         
         cube.each_with_index do |row, index|
@@ -91,9 +93,12 @@ module QuotientCube
         end
       end
       
-      def build_root
+      def build_root(current = cube.first)        
         root = tree.nodes.create_root
+        Builder.log("Created root node", "#{root}")
+        
         cube.measures.each do |measure|
+          # Builder.log("Writing measure #{measure}:#{cube.first[measure]} to #{root}")
           tree.nodes.add_measure(root, measure, cube.first[measure])
         end
       end
@@ -118,8 +123,9 @@ module QuotientCube
             nodes << nil
           end
         end
-                
+        
         cube.measures.each do |measure|
+          # Builder.log("Writing measure #{measure}:#{row[measure]} to #{last_node}")
           tree.nodes.add_measure(last_node, measure, row[measure])
         end
         
@@ -147,15 +153,18 @@ module QuotientCube
         
         def debug
           @debugging = true
-          yield
-          @debugging = false
+          begin
+            yield
+          ensure
+            @debugging = false
+          end
         end
         
         def debugging?
           @debugging
         end
         
-        def log(title, msg)
+        def log(title, msg = nil)
           puts "[Builder] #{title} => #{msg}" if debugging?
         end
       end
