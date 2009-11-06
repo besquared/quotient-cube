@@ -1,6 +1,3 @@
-#
-# Represents a qube database
-#
 module Qubedb
   class Database
     attr_accessor :path
@@ -8,77 +5,88 @@ module Qubedb
     attr_accessor :tables
     attr_accessor :cubes
     
-    def initialize(path, name)
-      @path = path
+    def initialize(name)
       @name = name
-      @table = Tables::Manager.new(self)
+      @tables = Tables::Manager.new(self)
       @cubes = Cubes::Manager.new(self)
     end
     
-    def select(name, fields = :all, conditions = {})
+    def query_table(name, fields = :all, conditions = {})
       if table = tables.find(name)
         return table.select(fields, conditions)
-      elsif cube = cubes.find(name)
+      else
+        raise "No tables found with name #{name}"
+      end
+    end
+    
+    def query_cube(name, measures = :all, conditions = {})
+      if cube = cubes.find(name)
         return cube.select(fields, conditions)
       else
-        raise "No tables or cubes found with name #{name}"
+        raise "No cubes found with name #{name}"
       end
     end
     
     def path
-      self.class.path(path, name)
+      self.class.path(name)
     end
     
     def tables_path
-      self.class.tables_path(path, name)
+      self.class.tables_path(name)
     end
     
     def cubes_path
-      self.class.cubes_path(path, name)
+      self.class.cubes_path(name)
     end
     
     class << self
-      def create(path, name)
-        write_path(path, name)
-        write_tables_path(path, name)
-        write_cubes_path(path, name)
-        new(path, name)
+      def create(name)
+        write_path(name)
+        write_tables_path(name)
+        write_cubes_path(name)
+        new(name)
       end
       
-      def open(opath, name)
-        if path(opath, name)
-          new(opath, name)
+      def open(name)
+        if File.exist?(path(name))
+          new(name)
         else
           raise "Database not found"
         end
+      end
+      
+      def drop(name)
+        FileUtils.rm_rf(path(name))
+        FileUtils.rm_rf(tables_path(name))
+        FileUtils.rm_rf(cubes_path(name))
       end
       
       #
       # Path management
       #
       
-      def path(path, name)
-        File.join(path, name)
+      def path(name)
+        File.join(File.expand_path(Configuration.data_path), name)
       end
 
-      def write_path(wpath, name)
-        FileUtils.mkpath(path(wpath, name))
+      def write_path(name)
+        FileUtils.mkpath(path(name))
       end
       
-      def tables_path(tpath, name)
-        File.join(path(tpath, name), 'tables')
+      def tables_path(name)
+        File.join(path(name), 'tables')
       end
       
-      def write_tables_path(path, name)
-        FileUtils.mkpath(tables_path(path, name))
+      def write_tables_path(name)
+        FileUtils.mkpath(tables_path(name))
       end
       
-      def cubes_path(cpath, name)
-        File.join(path(cpath, name), 'cubes')
+      def cubes_path(name)
+        File.join(path(name), 'cubes')
       end
       
-      def write_cubes_path(path, name)
-        FileUtils.mkpath(cubes_path(path, name))
+      def write_cubes_path(name)
+        FileUtils.mkpath(cubes_path(name))
       end
     end
   end

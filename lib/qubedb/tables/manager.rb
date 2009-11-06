@@ -10,7 +10,7 @@ module Qubedb
       end
     
       def find(name)
-        if File.exist?(File.join(database.tables_path, "#{name}.data")
+        if File.exist?(File.join(database.tables_path, "#{name}.data"))
           return Table.new(database, name)
         else
           return nil
@@ -31,7 +31,7 @@ module Qubedb
           end
         end
       end
-        
+              
     protected
       def create_table(name)
       end

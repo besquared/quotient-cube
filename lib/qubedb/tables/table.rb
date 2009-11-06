@@ -31,7 +31,7 @@ module Qubedb
           begin
             index.tune(-1, -1, -1, -1, -1, BDB::TLARGE | BDB::TDEFLATE)
             if index.open(index_path(name), BDB::OCREAT)
-              return Index.new(, name)
+              return Index.new(table, name)
             else
               raise "Could not create index for table #{name}, #{index.errmsg}"
             end

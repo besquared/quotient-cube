@@ -10,7 +10,7 @@ module Qubedb
       end
     
       def find(name)
-        if File.exist?(File.join(database.cubes_path, "#{name}.data")
+        if File.exist?(File.join(database.cubes_path, "#{name}.data"))
           return Cube.new(database, name)
         else
           return nil

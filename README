@@ -1,0 +1,3 @@
+Quotient Cube is an algorithm and strategy for storing data cubes.
+
+QubeDB is a system for storing, aggregating and querying multi-dimensional time series data. It uses tokyo cabinet tables and b+tree files to store the various types of data that are required by the system. 
