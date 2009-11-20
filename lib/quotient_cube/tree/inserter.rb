@@ -1,6 +1,6 @@
 module QuotientCube
   module Tree
-    class Builder
+    class Inserter
       attr_accessor :database
       attr_accessor :cube
       attr_accessor :options      
@@ -17,10 +17,9 @@ module QuotientCube
         @tree = Tree::Base.new(database, options)
       end
       
-      def build
+      def apply
         return if cube.length == 0
         
-        build_meta
         build_root
                 
         # if we're all * the node index should point us to real root
@@ -80,14 +79,6 @@ module QuotientCube
         tree
       end
       
-      def build_meta
-        database.putlist(meta_key('dimensions'), cube.dimensions)
-        database.putlist(meta_key('measures'), cube.measures)
-                
-        cube.values.each do |dimension, values|
-          database.putlist(meta_key("[#{dimension}]"), values)
-        end
-      end
       
       def build_root(current = cube.first)        
         root = tree.nodes.create_root
@@ -125,22 +116,8 @@ module QuotientCube
         nodes
       end
       
-      def build_link(source, destination, name, dimension)
-        dimension = tree.nodes.add_dimension(source, dimension)
-        linked = tree.nodes.add_child(source, dimension, name, destination)
-        Builder.log("Building link", "#{source} to #{destination} at #{dimension} labeled #{name}")
-      end
-      
-      def prefix
-        @prefix ||= options[:prefix].nil? ? nil : "#{options[:prefix]}:"
-      end
-      
-      def meta_key(property)
-        "#{prefix}#{property}"
-      end
-      
       class << self
-        def build(database, cube, options = {})
+        def apply(database, cube, options = {})
           new(database, cube, options).build
         end
         
@@ -158,7 +135,7 @@ module QuotientCube
         end
         
         def log(title, msg = nil)
-          puts "[Builder] #{title} => #{msg}" if debugging?
+          puts "[Inserter] #{title} => #{msg}" if debugging?
         end
       end
     end

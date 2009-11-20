@@ -20,19 +20,23 @@ module QuotientCube
     attr_accessor :dimensions
     attr_accessor :measures
     attr_accessor :values
-    attr_accessor :fixed
   
     def initialize(table, dimensions, measures)
       @table = table
       @dimensions = dimensions
       @measures = measures
-      @fixed = {}
       super(:column_names => ['id', 'upper', 'lower', 'child_id', *measures])
     end
   
     def build(&block)
       cell = Array.new(dimensions.length).fill('*')
       dfs(cell, (0..table.data.length - 1).to_a, 0, -1, &block)
+      self.sort(['upper', 'id'])
+    end
+    
+    def update(tree, &block)
+      cell = Array.new(dimensions.length).fill('*')
+      ddfs(tree, cell, (0..table.data.length - 1).to_a, 0, -1, &block)
       self.sort(['upper', 'id'])
     end
     
@@ -88,17 +92,6 @@ module QuotientCube
         indexes[dimension] = index
       end
       indexes
-      
-      # 0.upto(dimensions.length - 1) do |dimension|
-      #   index = {}
-      #   pointers.each do |pointer|
-      #     value = table.data[pointer][dimension]
-      #     index[value] ||= []
-      #     index[value] << pointer
-      #   end
-      #   indexes << index
-      # end
-      # indexes
     end
 
     #
@@ -138,35 +131,14 @@ module QuotientCube
       upper
     end
   
-    def dfs(cell, pointers, position, child, &block)    
+    def dfs(cell, pointers, position, child, &block)
       # Computer aggregate of cell
       aggregate = block.call(table, pointers) if block_given?
-      
-      #
-      # instead of building these indexes every
-      #  iteration we could just see which dimensions
-      #  are instantiated and query a global index instead
-      #
-      # pointers = []
-      # cell.each_with_index do |value, index|
-      #   if value != '*'
-      #     if pointers.empty?
-      #       pointers = indexes(index)[value]
-      #     else
-      #       pointers &= indexes(index)[value]
-      #     end
-      #   end
-      # end
-      #
-      # We still need to do column counts here
-      #  but we can stop really early if we know we have
-      #  more than one value in a particular column
-      #
       
       # Collect information about the partition
       indexed = indexes(pointers)
     
-      # Comput the upper bound of the class containing cell
+      # Compute the upper bound of the class containing cell
       #  by 'jumping' to the appropriate upper bound
       upper = upper_bound(indexed, cell)
     
@@ -196,7 +168,69 @@ module QuotientCube
           end
         end
       end
-    end  
+    end
+    
+    #
+    # Delta DFS for updating a qc-tree in batch
+    #
+    def ddfs(tree, cell, pointers, position, child, &block)
+      # Computer aggregate of cell
+      #  this might be different here if we're updating
+      aggregate = block.call(table, pointers) if block_given?
+      
+      # Collect information about the partition
+      indexed = indexes(pointers)
+    
+      # Compute the upper bound of the class containing cell
+      #  by 'jumping' to the appropriate upper bound
+      upper = upper_bound(indexed, cell)
+      
+      #
+      # Look in the tree for the upper bound (ub) of the class containing c
+      #
+      #  If we can't find it record a new class like we normally would
+      #
+      #  If we do find ub then we compare it to c' (upper), we have 3 cases
+      #  
+      #  1) ub ^ c' = ub
+      #     We found the exact upper bound in the tree
+      #      Record a measure update on the class
+      #  2) ub ^ c' = c'
+      #     c' is an upper bound bound. Record a split class
+      #     with upper bound c' containing all cells of C that
+      #     are below c'. The remainder of C forms another class
+      #     with ub as its upper bound. (????)
+      #  3) Neither of the above.
+      #     ub and c' are not comparable. Record a new class with
+      #     upper bound c'' = ub ^ c'
+      #
+      class_id = self.length
+      self << [class_id, upper.dup, cell.dup, child, *aggregate]
+    
+      # puts "Found class #{class_id} (#{child}) => #{upper}"
+      # puts cell.inspect
+      # puts upper.inspect
+    
+      # return if we've examined this upper bound before
+      for j in (0..position - 1) do
+        return if cell[j] == '*' and upper[j] != '*'
+      end
+            
+      d = upper.dup
+      n = dimensions.length - 1
+      for j in (position..n) do
+        next unless d[j] == '*'
+        
+        dimension = dimensions[j]
+        indexed[dimension].each do |x, pointers|
+        if(pointers.length > 0)
+            d[j] = x
+            dfs(tree, d, pointers, j, class_id, &block)
+            d[j] = '*'
+          end
+        end
+      end
+    end
   
     class << self
       def build(table, dimensions, measures, &block)
