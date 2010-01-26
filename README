@@ -1,3 +1,69 @@
-Quotient Cube is an algorithm and strategy for storing data cubes.
+Quotient Cube is an algorithm and strategy for storing and querying data cubes.
 
-QubeDB is a system for storing, aggregating and querying multi-dimensional time series data. It uses tokyo cabinet tables and b+tree files to store the various types of data that are required by the system. 
+Requires autobots-transform
+
+Example:
+
+require 'tokyocabinet'
+require 'quotient-cube'
+
+# 1) Base Data Table
+
+@table = Table.new(
+  :column_names => [
+    'store', 'product', 'season', 'sales'
+  ], :data => [
+    ['S1', 'P1', 's', 6],
+    ['S1', 'P2', 's', 12],
+    ['S2', 'P1', 'f', 9]
+  ]
+)
+
+@measures = ['sales[sum]', 'sales[avg]']
+@dimensions = ['store', 'product', 'season']
+
+# 2) Build quotient cube data structure
+
+cube = QuotientCube::Base.build(@table, @dimensions, @measures) do |table, pointers|
+  sum = 0
+  pointers.each do |pointer|
+    sum += table[pointer]['sales']
+  end
+
+  [sum, sum / pointers.length]
+end
+
+# 3) Write out Quotient Cube Tree (QC-Tree) to disk
+
+database = BDB.new
+database.open(data_path, BDB::OWRITER | BDB::OCREAT)
+
+Tree::Builder.new(database, cube).build
+
+database.close
+
+# Querying the QC-Tree
+
+database.open
+tree = Tree::Base.new(database)
+
+# Point Query
+
+@tree.find('sales[avg]', :conditions => {'product' => 'P1', 'season' => 'f'})
+#=> {'product' => 'P1', 'season' => 'f', 'sales[avg]' => 9.0}
+
+# Range Query
+
+@tree.find('sales[avg]', :conditions => {'product' => ['P1', 'P2', 'P3']})
+#=> [{'product' => 'P1', 'sales[avg]' => 7.5}, 
+     {'product' => 'P2', 'sales[avg]' => 12.0}]
+
+# Range Query
+
+@tree.find(:all, :conditions => {'product' => :all})
+#=> [
+  {'product' => 'P1', 'sales[avg]' => 7.5, 'sales[sum]' => 15.0}, 
+  {'product' => 'P2', 'sales[avg]' => 12.0, 'sales[sum]' => 12.0}
+]
+
+@tree.find(:all)
