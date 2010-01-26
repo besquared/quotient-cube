@@ -1,6 +1,19 @@
 Quotient Cube is an algorithm and strategy for storing and querying data cubes.
 
-Requires autobots-transform
+This is a pure ruby implementation of that algorithm.
+
+Requires tokyocabinet, autobots-transform
+
+It is currently powering a personal analytics project and I think it is stable
+enough (under some assumptions) for test and personal usage. Can also be used
+as a tool for learning how this particular algorithm works.
+
+Right now there is no support for incremental updates so everything is done
+in batch. Smaller tables say with <10 dimensions can be built relatively 
+quickly (a few thousand rows/second) so this is appropriate for daily batches
+consisting of several million rows. Once the cube is pre-computed querying
+is very fast. Point queries on a small tree can be done at the rate of 4000-5000
+per second. While range queries can be performed at rate of about 1000 per second.
 
 Example:
 
@@ -65,5 +78,3 @@ tree = Tree::Base.new(database)
   {'product' => 'P1', 'sales[avg]' => 7.5, 'sales[sum]' => 15.0}, 
   {'product' => 'P2', 'sales[avg]' => 12.0, 'sales[sum]' => 12.0}
 ]
-
-@tree.find(:all)
