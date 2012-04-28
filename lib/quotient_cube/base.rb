@@ -132,36 +132,41 @@ module QuotientCube
     end
   
     def dfs(cell, pointers, position, child, &block)
+      # puts table.to_s
+      
       # Computer aggregate of cell
       aggregate = block.call(table, pointers) if block_given?
       
       # Collect information about the partition
       indexed = indexes(pointers)
-    
+      
       # Compute the upper bound of the class containing cell
       #  by 'jumping' to the appropriate upper bound
       upper = upper_bound(indexed, cell)
     
       class_id = self.length
+      # puts "Recording class [#{class_id}, #{upper.inspect}, #{cell.inspect}, #{child}]"
       self << [class_id, upper.dup, cell.dup, child, *aggregate]
-    
+      
       # puts "Found class #{class_id} (#{child}) => #{upper}"
       # puts cell.inspect
       # puts upper.inspect
     
       # return if we've examined this upper bound before
+      #  I don't think this is working
       for j in (0..position - 1) do
         return if cell[j] == '*' and upper[j] != '*'
       end
-            
+      
       d = upper.dup
       n = dimensions.length - 1
       for j in (position..n) do
         next unless d[j] == '*'
         
         dimension = dimensions[j]
-        indexed[dimension].each do |x, pointers|
-        if(pointers.length > 0)
+        indexed[dimension].keys.sort.each do |x|
+          pointers = indexed[dimension][x]
+          if(pointers.length > 0)
             d[j] = x
             dfs(d, pointers, j, class_id, &block)
             d[j] = '*'

@@ -1,9 +1,9 @@
 require 'rake'
-require 'spec/rake/spectask'
+require 'rspec/core/rake_task'
 
 task :default => :spec
 
-Spec::Rake::SpecTask.new(:spec) do |t|
-  t.spec_opts = ['--options', "\"spec/spec.opts\""]
-  t.spec_files = FileList['spec/**/*_spec.rb']
+RSpec::Core::RakeTask.new(:spec) do |t|
+  t.pattern = 'spec/**/*_spec.rb'
+  t.rspec_opts = ['--options', "\"spec/spec.opts\""]
 end
