@@ -28,8 +28,8 @@ describe QuotientCube::Tree::Base do
       end
       
       @tempfile = Tempfile.new('database')
-      @database = TokyoCabinet::BDB.new
-      @database.open(@tempfile.path, BDB::OWRITER | BDB::OCREAT)
+      @database = KyotoCabinet::DB.new
+      @database.open(@tempfile.path, KyotoCabinet::DB::OWRITER | KyotoCabinet::DB::OCREATE)
       
       @tree = QuotientCube::Tree::Builder.build(@database, @cube, :prefix => 'prefix')
     end
@@ -114,8 +114,8 @@ describe QuotientCube::Tree::Base do
       end
       
       @tempfile = Tempfile.new('database')
-      @database = TokyoCabinet::BDB.new
-      @database.open(@tempfile.path, BDB::OWRITER | BDB::OCREAT)
+      @database = KyotoCabinet::DB.new
+      @database.open(@tempfile.path, KyotoCabinet::DB::OWRITER | KyotoCabinet::DB::OCREATE)
       
       @tree = QuotientCube::Tree::Builder.build(@database, @cube)
     end
@@ -245,8 +245,8 @@ describe QuotientCube::Tree::Base do
       end
   
       @tempfile = Tempfile.new('database')
-      @database = TokyoCabinet::BDB.new
-      @database.open(@tempfile.path, BDB::OWRITER | BDB::OCREAT)
+      @database = KyotoCabinet::DB.new
+      @database.open(@tempfile.path, KyotoCabinet::DB::OWRITER | KyotoCabinet::DB::OCREATE)
       
       @tree = QuotientCube::Tree::Builder.build(@database, @cube, :prefix => 'prefix')
     end
@@ -280,8 +280,8 @@ describe QuotientCube::Tree::Base do
       end
       
       @tempfile = Tempfile.new('database')
-      @database = TokyoCabinet::BDB.new
-      @database.open(@tempfile.path, BDB::OWRITER | BDB::OCREAT)
+      @database = KyotoCabinet::DB.new
+      @database.open(@tempfile.path, KyotoCabinet::DB::OWRITER | KyotoCabinet::DB::OCREATE)
       
       @tree = QuotientCube::Tree::Builder.build(@database, @cube)
     end
@@ -314,8 +314,8 @@ describe QuotientCube::Tree::Base do
       end
       
       @tempfile = Tempfile.new('database')
-      @database = TokyoCabinet::BDB.new
-      @database.open(@tempfile.path, BDB::OWRITER | BDB::OCREAT)
+      @database = KyotoCabinet::DB.new
+      @database.open(@tempfile.path, KyotoCabinet::DB::OWRITER | KyotoCabinet::DB::OCREATE)
       
       @tree = QuotientCube::Tree::Builder.build(@database, @cube)
     end
@@ -356,8 +356,8 @@ describe QuotientCube::Tree::Base do
       end
             
       @tempfile = Tempfile.new('database')
-      @database = TokyoCabinet::BDB.new
-      @database.open(@tempfile.path, BDB::OWRITER | BDB::OCREAT)
+      @database = KyotoCabinet::DB.new
+      @database.open(@tempfile.path, KyotoCabinet::DB::OWRITER | KyotoCabinet::DB::OCREATE)
       @tree = QuotientCube::Tree::Builder.build(@database, @cube)
     end
     

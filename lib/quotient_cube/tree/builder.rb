@@ -83,13 +83,13 @@ module QuotientCube
       def build_meta
         database.putlist(meta_key('dimensions'), cube.dimensions)
         database.putlist(meta_key('measures'), cube.measures)
-                
+        
         cube.values.each do |dimension, values|
           database.putlist(meta_key("[#{dimension}]"), values)
         end
       end
       
-      def build_root(current = cube.first)        
+      def build_root(current = cube.first)
         root = tree.nodes.create_root
         Builder.log("Created root node", "#{root}")
         
